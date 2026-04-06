@@ -16,16 +16,18 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Rana's Twist - Menu Digital",
-  description: 'Culinária Indiana em Oeiras',
-  keywords: 'restaurante indiano, lisboa, oeiras, menu digital, qr code',
-  authors: [{ name: "Rana's Twist" }],
+  title: 'Caru - Cozinha Artesanal | Menu Digital',
+  description:
+    'Salgados, doces e produtos fitness artesanais. Menu digital Caru.',
+  keywords:
+    'cozinha artesanal, salgados, doces, fitness, menu digital, portugal',
+  authors: [{ name: 'Caru - Cozinha Artesanal' }],
   openGraph: {
-    title: "Rana's Twist - Menu Digital",
-    description: 'Culinária Indiana em Oeiras',
+    title: 'Caru - Cozinha Artesanal | Menu Digital',
+    description: 'Salgados, doces e produtos fitness artesanais.',
     type: 'website',
     locale: 'pt_PT',
-    siteName: "Rana's Twist",
+    siteName: 'Caru - Cozinha Artesanal',
   },
   robots: {
     index: true,
@@ -49,9 +51,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

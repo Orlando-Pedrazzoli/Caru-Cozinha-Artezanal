@@ -50,12 +50,15 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Cores customizadas para Rana's Twist
-        saffron: '#ECC216',
-        turmeric: '#DE9F20',
-        copper: '#B87333',
-        charcoal: '#333333',
-        warmbeige: '#E9EEE0',
+        // Cores customizadas Caru
+        caru: {
+          purple: '#6B3A7D',
+          green: '#4A7C59',
+          red: '#8B3A3A',
+          brown: '#6B4226',
+          blue: '#4A6FA5',
+          cream: '#F5F0EB',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

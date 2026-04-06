@@ -4,16 +4,15 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
-import { Leaf, Wheat, UtensilsCrossed } from 'lucide-react';
+import { Leaf, Wheat, UtensilsCrossed, Dumbbell } from 'lucide-react';
 
 interface MenuFiltersProps {
   filters: {
     vegetarian: boolean;
     vegan: boolean;
     glutenFree: boolean;
-    halal: boolean;
     dairyFree: boolean;
-    spiceLevel: number[];
+    fitness: boolean;
   };
   onFilterChange: (filters: any) => void;
 }
@@ -21,21 +20,12 @@ interface MenuFiltersProps {
 export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
   const t = useTranslations('menu');
 
-  const toggleDietaryFilter = (key: 'vegetarian' | 'vegan' | 'glutenFree' | 'halal' | 'dairyFree') => {
+  const toggleDietaryFilter = (
+    key: 'vegetarian' | 'vegan' | 'glutenFree' | 'dairyFree' | 'fitness',
+  ) => {
     onFilterChange({
       ...filters,
       [key]: !filters[key],
-    });
-  };
-
-  const toggleSpiceLevel = (level: number) => {
-    const newLevels = filters.spiceLevel.includes(level)
-      ? filters.spiceLevel.filter(l => l !== level)
-      : [...filters.spiceLevel, level];
-
-    onFilterChange({
-      ...filters,
-      spiceLevel: newLevels,
     });
   };
 
@@ -44,9 +34,8 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
       vegetarian: false,
       vegan: false,
       glutenFree: false,
-      halal: false,
       dairyFree: false,
-      spiceLevel: [],
+      fitness: false,
     });
   };
 
@@ -54,15 +43,8 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
     (filters.vegetarian ? 1 : 0) +
     (filters.vegan ? 1 : 0) +
     (filters.glutenFree ? 1 : 0) +
-    (filters.halal ? 1 : 0) +
     (filters.dairyFree ? 1 : 0) +
-    filters.spiceLevel.length;
-
-  const spiceLevelOptions = [
-    { level: 1, icon: '🌶️', text: 'Suave' },
-    { level: 2, icon: '🌶️🌶️', text: 'Picante' },
-    { level: 3, icon: '🔥', text: 'Muito Picante' },
-  ];
+    (filters.fitness ? 1 : 0);
 
   return (
     <div className='space-y-4 p-4 bg-card rounded-lg border'>
@@ -82,8 +64,17 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
 
       {/* Dietary Filters */}
       <div className='space-y-2'>
-        <Label className='text-sm font-medium mb-2 block'>Dietary</Label>
         <div className='flex flex-col gap-2'>
+          <Button
+            variant={filters.fitness ? 'default' : 'outline'}
+            size='sm'
+            onClick={() => toggleDietaryFilter('fitness')}
+            className='justify-start gap-2'
+          >
+            <Dumbbell className='w-4 h-4' />
+            {t('fitness')}
+          </Button>
+
           <Button
             variant={filters.vegetarian ? 'default' : 'outline'}
             size='sm'
@@ -115,16 +106,6 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
           </Button>
 
           <Button
-            variant={filters.halal ? 'default' : 'outline'}
-            size='sm'
-            onClick={() => toggleDietaryFilter('halal')}
-            className='justify-start gap-2'
-          >
-            <UtensilsCrossed className='w-4 h-4' />
-            {t('halal')}
-          </Button>
-
-          <Button
             variant={filters.dairyFree ? 'default' : 'outline'}
             size='sm'
             onClick={() => toggleDietaryFilter('dairyFree')}
@@ -133,29 +114,6 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
             <UtensilsCrossed className='w-4 h-4' />
             {t('dairyFree')}
           </Button>
-        </div>
-      </div>
-
-      {/* Spice Level Filters */}
-      <div className='space-y-2'>
-        <Label className='text-sm font-medium mb-2 block'>
-          {t('spiceLevel')}
-        </Label>
-        <div className='grid grid-cols-3 gap-2'>
-          {spiceLevelOptions.map(({ level, icon, text }) => (
-            <Button
-              key={level}
-              variant={
-                filters.spiceLevel.includes(level) ? 'default' : 'outline'
-              }
-              size='sm'
-              onClick={() => toggleSpiceLevel(level)}
-              className='text-xs flex flex-col items-center gap-1 h-auto py-2'
-            >
-              <span className='text-lg'>{icon}</span>
-              <span className='truncate text-xs'>{text}</span>
-            </Button>
-          ))}
         </div>
       </div>
     </div>

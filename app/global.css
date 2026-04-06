@@ -4,68 +4,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 37 91% 50%;
+    --background: 30 25% 97%;
+    --foreground: 270 20% 20%;
+    --card: 30 20% 99%;
+    --card-foreground: 270 20% 20%;
+    --popover: 30 20% 99%;
+    --popover-foreground: 270 20% 20%;
+    --primary: 276 35% 36%;
     --primary-foreground: 0 0% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    --secondary: 30 20% 93%;
+    --secondary-foreground: 270 20% 20%;
+    --muted: 30 15% 93%;
+    --muted-foreground: 270 10% 46%;
+    --accent: 30 20% 93%;
+    --accent-foreground: 270 20% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 37 91% 50%;
-
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 276 35% 36%;
     --radius: 0.5rem;
+
+    /* Cores por categoria */
+    --color-salgados: 0 30% 39%;
+    --color-doces: 24 45% 28%;
+    --color-fitness: 145 26% 39%;
+    --color-acompanhamentos: 210 40% 45%;
 
     --font-inter: 'Inter', sans-serif;
     --font-playfair: 'Playfair Display', serif;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 37 91% 50%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
+    --background: 270 25% 8%;
+    --foreground: 30 20% 95%;
+    --card: 270 25% 10%;
+    --card-foreground: 30 20% 95%;
+    --popover: 270 25% 10%;
+    --popover-foreground: 30 20% 95%;
+    --primary: 276 40% 55%;
+    --primary-foreground: 270 25% 8%;
+    --secondary: 270 20% 15%;
+    --secondary-foreground: 30 20% 95%;
+    --muted: 270 20% 15%;
+    --muted-foreground: 30 15% 65%;
+    --accent: 270 20% 15%;
+    --accent-foreground: 30 20% 95%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 37 91% 50%;
+    --destructive-foreground: 30 20% 95%;
+    --border: 270 20% 18%;
+    --input: 270 20% 18%;
+    --ring: 276 40% 55%;
   }
 }
 
@@ -86,8 +75,8 @@
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom animations */

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -26,28 +26,30 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(bytes);
 
     const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          folder: 'ranas-twist',
-          resource_type: 'image',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(buffer);
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: 'caru-artesanal',
+            resource_type: 'image',
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        )
+        .end(buffer);
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       url: (result as any).secure_url,
       cloudinaryId: (result as any).public_id,
-      success: true 
+      success: true,
     });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
       { error: 'Failed to upload image', success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

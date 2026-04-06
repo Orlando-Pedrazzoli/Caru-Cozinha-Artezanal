@@ -15,19 +15,40 @@ interface Dish {
   _id: string;
   name: { pt: string; en: string };
   description: { pt: string; en: string };
-  category: string | { _id: string; name: { pt: string; en: string }; order: number } | null | undefined;
+  baseDescription?: { pt: string; en: string };
+  category:
+    | string
+    | {
+        _id: string;
+        name: { pt: string; en: string };
+        order: number;
+        color?: string;
+      }
+    | null
+    | undefined;
   price: number;
   compareAtPrice?: number;
+  weight?: string;
+  calories?: number;
   images?: Array<{ url: string; isPrimary?: boolean }>;
   dietaryInfo: {
     vegetarian?: boolean;
     vegan?: boolean;
     glutenFree?: boolean;
     dairyFree?: boolean;
-    halal?: boolean;
+    fitness?: boolean;
   };
   allergens?: string[];
-  spiceLevel?: number;
+  variants?: Array<{
+    name: { pt: string; en: string };
+    price?: number;
+    available?: boolean;
+  }>;
+  portionSizes?: Array<{
+    label: { pt: string; en: string };
+    price: number;
+    weight?: string;
+  }>;
   badges?: Array<{ type: string }>;
   searchTags?: string[];
   available: boolean;
@@ -38,6 +59,7 @@ interface Category {
   _id: string;
   name: { pt: string; en: string };
   slug: string;
+  color?: string;
   order: number;
   active: boolean;
 }
@@ -57,12 +79,10 @@ export default function MenuPage() {
     vegetarian: false,
     vegan: false,
     glutenFree: false,
-    halal: false,
     dairyFree: false,
-    spiceLevel: [] as number[],
+    fitness: false,
   });
 
-  // Ref para a área de conteúdo onde queremos fazer scroll
   const contentTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,7 +110,6 @@ export default function MenuPage() {
     }
   };
 
-  // Setup Fuse.js for fuzzy search
   const fuse = useMemo(() => {
     return new Fuse(dishes, {
       keys: [`name.${locale}`, `description.${locale}`, 'searchTags'],
@@ -100,24 +119,18 @@ export default function MenuPage() {
     });
   }, [dishes, locale]);
 
-  // Filter and search dishes
   const filteredDishes = useMemo(() => {
     let result = dishes;
 
-    // Category filter - FIX: Handle string, object, null, and undefined
     if (selectedCategory !== 'all') {
       result = result.filter(dish => {
-        if (!dish.category) return false; // Skip dishes without category
-        
-        const categoryId = typeof dish.category === 'string' 
-          ? dish.category 
-          : dish.category._id;
-        
+        if (!dish.category) return false;
+        const categoryId =
+          typeof dish.category === 'string' ? dish.category : dish.category._id;
         return categoryId === selectedCategory;
       });
     }
 
-    // Dietary filters
     if (filters.vegetarian) {
       result = result.filter(dish => dish.dietaryInfo?.vegetarian);
     }
@@ -127,75 +140,58 @@ export default function MenuPage() {
     if (filters.glutenFree) {
       result = result.filter(dish => dish.dietaryInfo?.glutenFree);
     }
-    if (filters.halal) {
-      result = result.filter(dish => dish.dietaryInfo?.halal);
-    }
     if (filters.dairyFree) {
       result = result.filter(dish => dish.dietaryInfo?.dairyFree);
     }
-
-    // Spice level filter
-    if (filters.spiceLevel.length > 0) {
-      result = result.filter(dish =>
-        filters.spiceLevel.includes(dish.spiceLevel || 0)
-      );
+    if (filters.fitness) {
+      result = result.filter(dish => dish.dietaryInfo?.fitness);
     }
 
-    // Search
     if (searchTerm) {
       const searchResults = fuse.search(searchTerm);
       const searchIds = searchResults.map(r => r.item._id);
       result = result.filter(dish => searchIds.includes(dish._id));
     }
 
-    // Ordenar por categoria quando "Todos" está selecionado
     if (selectedCategory === 'all') {
       result = result.sort((a, b) => {
-        // Obter informações da categoria de cada prato
-        const aCategoryOrder = typeof a.category === 'object' && a.category !== null
-          ? (a.category.order || 0)
-          : 999; // Pratos sem categoria vão para o final
-        
-        const bCategoryOrder = typeof b.category === 'object' && b.category !== null
-          ? (b.category.order || 0)
-          : 999; // Pratos sem categoria vão para o final
+        const aCategoryOrder =
+          typeof a.category === 'object' && a.category !== null
+            ? a.category.order || 0
+            : 999;
+        const bCategoryOrder =
+          typeof b.category === 'object' && b.category !== null
+            ? b.category.order || 0
+            : 999;
 
-        // Primeiro ordenar por ordem da categoria
         if (aCategoryOrder !== bCategoryOrder) {
           return aCategoryOrder - bCategoryOrder;
         }
-
-        // Depois ordenar por displayOrder dentro da mesma categoria
         return (a.displayOrder || 0) - (b.displayOrder || 0);
       });
     } else {
-      // Quando uma categoria específica está selecionada, ordenar apenas por displayOrder
-      result = result.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      result = result.sort(
+        (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
+      );
     }
 
     return result;
   }, [dishes, selectedCategory, filters, searchTerm, fuse]);
 
-  // Função para mudar categoria e fazer scroll to top
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    
-    // Fazer scroll suave para o topo do conteúdo (logo abaixo das categorias)
     if (contentTopRef.current) {
-      // Calcular a posição: altura da navbar (73px) + altura das categorias (aumentada)
-      const offset = 136; // Total ajustado para o novo tamanho
+      const offset = 136;
       const elementPosition = contentTopRef.current.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
 
   const handleViewDetails = (dish: Dish) => {
-    // TODO: Implement modal or navigation to dish details
     console.log('View details:', dish);
   };
 
@@ -212,7 +208,7 @@ export default function MenuPage() {
 
   return (
     <div className='min-h-screen bg-background'>
-      {/* Header - Sticky no topo */}
+      {/* Header */}
       <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
         <div className='container mx-auto px-4 py-4'>
           <div className='flex items-center justify-between'>
@@ -225,18 +221,13 @@ export default function MenuPage() {
               </p>
             </div>
             <div className='flex items-center gap-2'>
-              {/* Theme Toggle */}
               <ThemeToggle />
-              
-              {/* Language Switcher */}
               <Link href={locale === 'pt' ? '/en' : '/pt'}>
                 <Button variant='ghost' size='sm'>
                   <Globe className='w-4 h-4 mr-2' />
                   {locale === 'pt' ? 'EN' : 'PT'}
                 </Button>
               </Link>
-
-              {/* Mobile Menu Toggle */}
               <Button
                 variant='ghost'
                 size='sm'
@@ -254,7 +245,7 @@ export default function MenuPage() {
         </div>
       </header>
 
-      {/* Search Bar - NORMAL (não sticky) */}
+      {/* Search Bar */}
       <div className='bg-background border-b'>
         <div className='container mx-auto px-4 py-4'>
           <div className='relative max-w-md mx-auto'>
@@ -270,7 +261,7 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* Category Tabs - Sticky logo abaixo da navbar - OPÇÃO 2: py-4 + top ajustado */}
+      {/* Category Tabs with dynamic colors */}
       <div className='sticky top-[77px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b'>
         <div className='container mx-auto px-4'>
           <div className='flex gap-2 overflow-x-auto py-4 scrollbar-hide'>
@@ -291,6 +282,15 @@ export default function MenuPage() {
                 size='sm'
                 onClick={() => handleCategoryChange(category._id)}
                 className='whitespace-nowrap'
+                style={
+                  selectedCategory === category._id && category.color
+                    ? {
+                        backgroundColor: category.color,
+                        color: 'white',
+                        borderColor: category.color,
+                      }
+                    : {}
+                }
               >
                 {category.name[locale]}
               </Button>
@@ -299,14 +299,12 @@ export default function MenuPage() {
         </div>
       </div>
 
-      {/* Ref para scroll - marca o início do conteúdo */}
+      {/* Content */}
       <div ref={contentTopRef} className='container mx-auto px-4 py-6'>
         <div className='grid lg:grid-cols-4 gap-6'>
-          {/* Filters Sidebar - Desktop */}
+          {/* Filters Sidebar */}
           <div
-            className={`lg:col-span-1 ${
-              mobileMenuOpen ? 'block' : 'hidden lg:block'
-            }`}
+            className={`lg:col-span-1 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}
           >
             <div className='sticky top-[152px]'>
               <MenuFilters filters={filters} onFilterChange={setFilters} />
@@ -332,7 +330,7 @@ export default function MenuPage() {
                     key={dish._id}
                     dish={{
                       ...dish,
-                      category: dish.category || undefined
+                      category: dish.category || undefined,
                     }}
                     onViewDetails={handleViewDetails}
                   />
@@ -353,9 +351,9 @@ export default function MenuPage() {
             <p className='mt-4'>{t('footer.copyright')}</p>
             <p className='mt-1'>
               {locale === 'pt' ? 'Desenvolvido por ' : 'Developed by '}
-              <a 
-                href='https://orlandopedrazzoli.com' 
-                target='_blank' 
+              <a
+                href='https://orlandopedrazzoli.com'
+                target='_blank'
                 rel='noopener noreferrer'
                 className='text-primary hover:underline'
               >

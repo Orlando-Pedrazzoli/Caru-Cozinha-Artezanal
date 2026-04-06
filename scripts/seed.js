@@ -12,52 +12,52 @@ const connectDB = async () => {
 };
 
 const CategorySchema = new mongoose.Schema({
-  name: {
-    pt: String,
-    en: String,
-  },
+  name: { pt: String, en: String },
   slug: String,
+  color: String,
   order: Number,
   active: Boolean,
 });
 
 const DishSchema = new mongoose.Schema({
-  name: {
-    pt: String,
-    en: String,
-  },
-  description: {
-    pt: String,
-    en: String,
-  },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-  },
+  name: { pt: String, en: String },
+  description: { pt: String, en: String },
+  baseDescription: { pt: String, en: String },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   price: Number,
   compareAtPrice: Number,
-  images: [{
-    url: String,
-    cloudinaryId: String,
-    isPrimary: Boolean,
-  }],
+  weight: String,
+  calories: Number,
+  images: [{ url: String, cloudinaryId: String, isPrimary: Boolean }],
   dietaryInfo: {
     vegetarian: Boolean,
     vegan: Boolean,
     glutenFree: Boolean,
     dairyFree: Boolean,
-    halal: Boolean,
+    fitness: Boolean,
   },
   allergens: [String],
-  spiceLevel: Number,
-  badges: [{
-    type: {
-      type: String,
-      enum: ['popular', 'chef-special', 'new'],
+  variants: [
+    {
+      name: { pt: String, en: String },
+      price: Number,
+      available: Boolean,
     },
-    priority: Number,
-    validUntil: Date,
-  }],
+  ],
+  portionSizes: [
+    {
+      label: { pt: String, en: String },
+      price: Number,
+      weight: String,
+    },
+  ],
+  badges: [
+    {
+      type: { type: String, enum: ['popular', 'novo', 'artesanal', 'sazonal'] },
+      priority: Number,
+      validUntil: Date,
+    },
+  ],
   available: Boolean,
   displayOrder: Number,
 });
@@ -74,286 +74,522 @@ const seedData = async () => {
     console.log('📂 Creating categories...');
     const categories = await Category.create([
       {
-        name: { pt: 'Entradas', en: 'Starters' },
-        slug: 'starters',
+        name: { pt: 'Salgados', en: 'Savoury' },
+        slug: 'salgados',
+        color: '#8B3A3A',
         order: 1,
         active: true,
       },
       {
-        name: { pt: 'Tandoor', en: 'Tandoor' },
-        slug: 'tandoor',
+        name: { pt: 'Doces', en: 'Sweets' },
+        slug: 'doces',
+        color: '#6B4226',
         order: 2,
         active: true,
       },
       {
-        name: { pt: 'Caril', en: 'Curry' },
-        slug: 'curry',
+        name: { pt: 'Fitness', en: 'Fitness' },
+        slug: 'fitness',
+        color: '#4A7C59',
         order: 3,
         active: true,
       },
       {
-        name: { pt: 'Biryani', en: 'Biryani' },
-        slug: 'biryani',
+        name: {
+          pt: 'Pastas, Acompanhamentos & Partilháveis',
+          en: 'Spreads, Sides & Shareable',
+        },
+        slug: 'acompanhamentos',
+        color: '#4A6FA5',
         order: 4,
-        active: true,
-      },
-      {
-        name: { pt: 'Pães', en: 'Breads' },
-        slug: 'breads',
-        order: 5,
-        active: true,
-      },
-      {
-        name: { pt: 'Bebidas', en: 'Beverages' },
-        slug: 'beverages',
-        order: 6,
-        active: true,
-      },
-      {
-        name: { pt: 'Sobremesas', en: 'Desserts' },
-        slug: 'desserts',
-        order: 7,
         active: true,
       },
     ]);
 
     console.log('✅ Categories created:', categories.length);
 
-    console.log('🍽️  Creating sample dishes...');
+    const [salgados, doces, fitness, acompanhamentos] = categories;
+
+    console.log('🍽️  Creating products...');
     const dishes = [
-      // Starters
+      // === SALGADOS ===
       {
-        name: { 
-          pt: 'Samosas Vegetais', 
-          en: 'Vegetable Samosas' 
+        name: { pt: 'Torta Salgada', en: 'Savoury Pie' },
+        description: {
+          pt: 'Torta artesanal com massa amanteigada e recheio caseiro',
+          en: 'Artisan pie with buttery pastry and homemade filling',
         },
-        description: { 
-          pt: 'Pastéis crocantes recheados com legumes temperados, servidos com chutney de tamarindo',
-          en: 'Crispy pastries filled with spiced vegetables, served with tamarind chutney'
+        baseDescription: { pt: 'Massa amanteigada', en: 'Buttery pastry' },
+        category: salgados._id,
+        price: 2.5,
+        variants: [
+          {
+            name: { pt: 'Frango', en: 'Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Cogumelos', en: 'Mushrooms' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Verduras', en: 'Vegetables' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: {
+          vegetarian: false,
+          vegan: false,
+          glutenFree: false,
+          dairyFree: false,
+          fitness: false,
         },
-        category: categories[0]._id,
-        price: 6.50,
-        images: [{
-          url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
-          isPrimary: true,
-        }],
+        allergens: ['gluten', 'dairy', 'eggs'],
+        badges: [{ type: 'popular', priority: 1 }],
+        available: true,
+        displayOrder: 1,
+      },
+      {
+        name: { pt: 'Pastelão de Forno', en: 'Baked Pastelão' },
+        description: {
+          pt: 'Pastelão assado com massa crocante e recheio generoso',
+          en: 'Oven-baked pastry with crispy dough and generous filling',
+        },
+        category: salgados._id,
+        price: 2.5,
+        variants: [
+          {
+            name: { pt: 'Frango', en: 'Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Cogumelos', en: 'Mushrooms' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Verduras', en: 'Vegetables' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: false, glutenFree: false },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 2,
+      },
+      {
+        name: { pt: 'Quiche Tradicional', en: 'Traditional Quiche' },
+        description: {
+          pt: 'Quiche artesanal com massa amanteigada e recheio cremoso',
+          en: 'Artisan quiche with buttery pastry and creamy filling',
+        },
+        baseDescription: { pt: 'Massa amanteigada', en: 'Buttery pastry' },
+        category: salgados._id,
+        price: 2.5,
+        variants: [
+          {
+            name: { pt: 'Queijo e Tomate', en: 'Cheese & Tomato' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Verduras', en: 'Vegetables' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Lorraine', en: 'Lorraine' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Alho Francês c/ Frango', en: 'Leek w/ Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Alho Francês s/ Frango', en: 'Leek w/o Chicken' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: false, glutenFree: false },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 3,
+      },
+      {
+        name: { pt: 'Folhado', en: 'Puff Pastry' },
+        description: {
+          pt: 'Folhado crocante com recheio caseiro',
+          en: 'Crispy puff pastry with homemade filling',
+        },
+        category: salgados._id,
+        price: 2.5,
+        variants: [
+          {
+            name: { pt: 'Frango', en: 'Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Cogumelos', en: 'Mushrooms' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: false, glutenFree: false },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 4,
+      },
+
+      // === DOCES ===
+      {
+        name: { pt: 'Brigadeiro Gourmet', en: 'Gourmet Brigadeiro' },
+        description: {
+          pt: 'Brigadeiro artesanal em versão gourmet com sabores exclusivos',
+          en: 'Artisan brigadeiro in gourmet version with exclusive flavours',
+        },
+        category: doces._id,
+        price: 1.7,
+        variants: [
+          {
+            name: { pt: 'Romeu e Julieta', en: 'Romeo & Juliet' },
+            price: null,
+            available: true,
+          },
+          { name: { pt: 'Ninho', en: 'Ninho' }, price: null, available: true },
+          {
+            name: { pt: 'Churros', en: 'Churros' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['dairy'],
+        available: true,
+        displayOrder: 1,
+      },
+      {
+        name: { pt: 'Brigadeiro Tradicional', en: 'Traditional Brigadeiro' },
+        description: {
+          pt: 'O clássico brigadeiro brasileiro feito com ingredientes de qualidade',
+          en: 'The classic Brazilian brigadeiro made with quality ingredients',
+        },
+        category: doces._id,
+        price: 1.5,
+        variants: [
+          {
+            name: { pt: 'Chocolate', en: 'Chocolate' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Casadinho', en: 'Casadinho' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Beijinho de Coco', en: 'Coconut Kiss' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['dairy'],
+        available: true,
+        displayOrder: 2,
+      },
+      {
+        name: { pt: 'Bala Baiana', en: 'Bala Baiana' },
+        description: {
+          pt: 'Doce tradicional baiano de coco',
+          en: 'Traditional Bahian coconut sweet',
+        },
+        category: doces._id,
+        price: 1.5,
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['dairy'],
+        available: true,
+        displayOrder: 3,
+      },
+      {
+        name: { pt: 'Bolo de Aipim/Mandioca', en: 'Cassava Cake' },
+        description: {
+          pt: 'Bolo húmido de mandioca com sabor caseiro',
+          en: 'Moist cassava cake with homemade flavour',
+        },
+        category: doces._id,
+        price: 3.5,
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['dairy', 'eggs'],
+        available: true,
+        displayOrder: 4,
+      },
+      {
+        name: { pt: 'Bolo de Cenoura', en: 'Carrot Cake' },
+        description: {
+          pt: 'Bolo de cenoura fofinho com cobertura de chocolate',
+          en: 'Fluffy carrot cake with chocolate topping',
+        },
+        category: doces._id,
+        price: 3.5,
+        dietaryInfo: { vegetarian: true },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 5,
+      },
+      {
+        name: { pt: 'Brownie', en: 'Brownie' },
+        description: {
+          pt: 'Brownie artesanal de chocolate intenso',
+          en: 'Artisan dark chocolate brownie',
+        },
+        category: doces._id,
+        price: 3.7,
+        weight: '180g',
+        dietaryInfo: { vegetarian: true },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        badges: [{ type: 'popular', priority: 1 }],
+        available: true,
+        displayOrder: 6,
+      },
+      {
+        name: { pt: 'Mini Brownie', en: 'Mini Brownie' },
+        description: {
+          pt: 'Versão mini do nosso brownie artesanal',
+          en: 'Mini version of our artisan brownie',
+        },
+        category: doces._id,
+        price: 1.7,
+        dietaryInfo: { vegetarian: true },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 7,
+      },
+      {
+        name: { pt: 'Trufa', en: 'Truffle' },
+        description: {
+          pt: 'Trufa artesanal de chocolate',
+          en: 'Artisan chocolate truffle',
+        },
+        category: doces._id,
+        price: 1.7,
+        variants: [
+          {
+            name: { pt: 'Chocolate', en: 'Chocolate' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Maracujá', en: 'Passion Fruit' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Morango', en: 'Strawberry' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['dairy'],
+        available: true,
+        displayOrder: 8,
+      },
+
+      // === FITNESS ===
+      {
+        name: { pt: 'Torta Fitness', en: 'Fitness Pie' },
+        description: {
+          pt: 'Torta com massa saudável de batata-doce',
+          en: 'Pie with healthy sweet potato dough',
+        },
+        baseDescription: {
+          pt: 'Massa de batata-doce com farinhas de aveia e milho',
+          en: 'Sweet potato dough with oat and corn flour',
+        },
+        category: fitness._id,
+        price: 2.7,
+        variants: [
+          {
+            name: { pt: 'Frango', en: 'Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Cogumelos', en: 'Mushrooms' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Verduras', en: 'Vegetables' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: {
+          vegetarian: false,
+          glutenFree: true,
+          dairyFree: true,
+          fitness: true,
+        },
+        allergens: ['eggs'],
+        badges: [{ type: 'popular', priority: 1 }],
+        available: true,
+        displayOrder: 1,
+      },
+      {
+        name: { pt: 'Quiche Fitness', en: 'Fitness Quiche' },
+        description: {
+          pt: 'Quiche com massa fitness saudável e leve',
+          en: 'Quiche with healthy and light fitness dough',
+        },
+        baseDescription: {
+          pt: 'Massa de batata-doce com farinhas de aveia e milho',
+          en: 'Sweet potato dough with oat and corn flour',
+        },
+        category: fitness._id,
+        price: 2.7,
+        variants: [
+          {
+            name: { pt: 'Queijo e Tomate', en: 'Cheese & Tomato' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Verduras', en: 'Vegetables' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Lorraine', en: 'Lorraine' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Alho Francês c/ Frango', en: 'Leek w/ Chicken' },
+            price: null,
+            available: true,
+          },
+          {
+            name: { pt: 'Alho Francês s/ Frango', en: 'Leek w/o Chicken' },
+            price: null,
+            available: true,
+          },
+        ],
+        dietaryInfo: {
+          vegetarian: false,
+          glutenFree: true,
+          dairyFree: true,
+          fitness: true,
+        },
+        allergens: ['eggs'],
+        available: true,
+        displayOrder: 2,
+      },
+
+      // === ACOMPANHAMENTOS ===
+      {
+        name: { pt: 'Pesto', en: 'Pesto' },
+        description: {
+          pt: 'Pesto artesanal de manjericão fresco',
+          en: 'Fresh basil artisan pesto',
+        },
+        category: acompanhamentos._id,
+        price: 4.5,
+        dietaryInfo: { vegetarian: true, glutenFree: true },
+        allergens: ['nuts'],
+        available: true,
+        displayOrder: 1,
+      },
+      {
+        name: { pt: 'Hommus', en: 'Hummus' },
+        description: {
+          pt: 'Hommus cremoso de grão-de-bico',
+          en: 'Creamy chickpea hummus',
+        },
+        category: acompanhamentos._id,
+        price: 4.5,
         dietaryInfo: {
           vegetarian: true,
           vegan: true,
-          halal: true,
+          glutenFree: true,
+          dairyFree: true,
         },
-        spiceLevel: 1,
-        available: true,
-        displayOrder: 1,
-        badges: [{ type: 'popular', priority: 1 }],
-      },
-      {
-        name: { 
-          pt: 'Allo Tikk Chatt', 
-          en: 'Allo Tikk Chatt' 
-        },
-        description: { 
-          pt: 'Bolinhos de batata crocantes com iogurte, chutneys e especiarias',
-          en: 'Crispy potato patties with yogurt, chutneys and spices'
-        },
-        category: categories[0]._id,
-        price: 7.50,
-        badges: [{ type: 'popular', priority: 1 }],
-        dietaryInfo: {
-          vegetarian: true,
-          halal: true,
-        },
-        allergens: ['dairy'],
-        spiceLevel: 2,
         available: true,
         displayOrder: 2,
       },
-
-      // Tandoor
       {
-        name: { 
-          pt: 'Chicken Tandoori', 
-          en: 'Chicken Tandoori' 
+        name: { pt: 'Coalhada Fresca', en: 'Fresh Curd' },
+        description: {
+          pt: 'Coalhada artesanal fresca',
+          en: 'Fresh artisan curd',
         },
-        description: { 
-          pt: 'Frango marinado em iogurte e especiarias, grelhado no forno tandoor',
-          en: 'Chicken marinated in yogurt and spices, grilled in tandoor oven'
-        },
-        category: categories[1]._id,
-        price: 16.90,
-        badges: [
-          { type: 'chef-special', priority: 1 },
-          { type: 'popular', priority: 2 }
-        ],
-        dietaryInfo: {
-          glutenFree: true,
-          halal: true,
-        },
-        allergens: ['dairy'],
-        spiceLevel: 2,
-        available: true,
-        displayOrder: 1,
-      },
-      {
-        name: { 
-          pt: 'Seekh Kebab', 
-          en: 'Seekh Kebab' 
-        },
-        description: { 
-          pt: 'Espetadas de borrego picado com ervas e especiarias, grelhadas no tandoor',
-          en: 'Minced lamb skewers with herbs and spices, grilled in tandoor'
-        },
-        category: categories[1]._id,
-        price: 14.90,
-        dietaryInfo: {
-          glutenFree: true,
-          halal: true,
-        },
-        spiceLevel: 2,
-        available: true,
-        displayOrder: 2,
-      },
-
-      // Curry
-      {
-        name: { 
-          pt: 'Butter Chicken', 
-          en: 'Butter Chicken' 
-        },
-        description: { 
-          pt: 'Frango em molho cremoso de tomate, manteiga e especiarias suaves',
-          en: 'Chicken in creamy tomato sauce with butter and mild spices'
-        },
-        category: categories[2]._id,
-        price: 15.90,
-        badges: [{ type: 'popular', priority: 1 }],
-        dietaryInfo: {
-          glutenFree: true,
-          halal: true,
-        },
-        allergens: ['dairy'],
-        spiceLevel: 1,
-        available: true,
-        displayOrder: 1,
-      },
-      {
-        name: { 
-          pt: 'Palak Paneer', 
-          en: 'Palak Paneer' 
-        },
-        description: { 
-          pt: 'Queijo indiano em molho cremoso de espinafres',
-          en: 'Indian cheese in creamy spinach sauce'
-        },
-        category: categories[2]._id,
-        price: 13.90,
-        dietaryInfo: {
-          vegetarian: true,
-          glutenFree: true,
-          halal: true,
-        },
-        allergens: ['dairy'],
-        spiceLevel: 1,
-        available: true,
-        displayOrder: 2,
-      },
-
-      // Biryani
-      {
-        name: { 
-          pt: "Rana's Twist Biryani", 
-          en: "Rana's Twist Biryani" 
-        },
-        description: { 
-          pt: 'Arroz basmati aromático com frango, especiarias e ervas - receita exclusiva do chef',
-          en: 'Aromatic basmati rice with chicken, spices and herbs - chef\'s exclusive recipe'
-        },
-        category: categories[3]._id,
-        price: 18.90,
-        compareAtPrice: 22.90,
-        badges: [
-          { type: 'chef-special', priority: 1 },
-          { type: 'new', priority: 2 }
-        ],
-        dietaryInfo: {
-          glutenFree: true,
-          halal: true,
-        },
-        spiceLevel: 2,
-        available: true,
-        displayOrder: 1,
-      },
-
-      // Breads
-      {
-        name: { 
-          pt: 'Naan com Alho', 
-          en: 'Garlic Naan' 
-        },
-        description: { 
-          pt: 'Pão tradicional indiano com alho fresco e coentros',
-          en: 'Traditional Indian bread with fresh garlic and coriander'
-        },
-        category: categories[4]._id,
-        price: 3.50,
-        dietaryInfo: {
-          vegetarian: true,
-          halal: true,
-        },
-        allergens: ['gluten', 'dairy'],
-        available: true,
-        displayOrder: 1,
-      },
-
-      // Beverages
-      {
-        name: { 
-          pt: 'Mango Lassi', 
-          en: 'Mango Lassi' 
-        },
-        description: { 
-          pt: 'Bebida refrescante de iogurte com manga',
-          en: 'Refreshing yogurt drink with mango'
-        },
-        category: categories[5]._id,
-        price: 4.50,
-        dietaryInfo: {
-          vegetarian: true,
-          glutenFree: true,
-        },
+        category: acompanhamentos._id,
+        price: 4.0,
+        dietaryInfo: { vegetarian: true, glutenFree: true },
         allergens: ['dairy'],
         available: true,
-        displayOrder: 1,
+        displayOrder: 3,
       },
-
-      // Desserts
       {
-        name: { 
-          pt: 'Gulab Jamun', 
-          en: 'Gulab Jamun' 
+        name: { pt: 'Caponata', en: 'Caponata' },
+        description: {
+          pt: 'Caponata siciliana de berinjela',
+          en: 'Sicilian eggplant caponata',
         },
-        description: { 
-          pt: 'Bolinhos doces em calda de açúcar com cardamomo',
-          en: 'Sweet dumplings in sugar syrup with cardamom'
-        },
-        category: categories[6]._id,
-        price: 5.50,
+        category: acompanhamentos._id,
+        price: 4.5,
         dietaryInfo: {
           vegetarian: true,
+          vegan: true,
+          glutenFree: true,
+          dairyFree: true,
         },
-        allergens: ['dairy', 'gluten'],
         available: true,
-        displayOrder: 1,
+        displayOrder: 4,
+      },
+      {
+        name: { pt: 'Granola', en: 'Granola' },
+        description: {
+          pt: 'Granola artesanal crocante',
+          en: 'Crunchy artisan granola',
+        },
+        category: acompanhamentos._id,
+        price: 5.0,
+        dietaryInfo: { vegetarian: true, vegan: true, dairyFree: true },
+        allergens: ['nuts', 'gluten'],
+        available: true,
+        displayOrder: 5,
+      },
+      {
+        name: { pt: 'Biscoitos', en: 'Biscuits' },
+        description: {
+          pt: 'Biscoitos artesanais variados',
+          en: 'Assorted artisan biscuits',
+        },
+        category: acompanhamentos._id,
+        price: 4.0,
+        dietaryInfo: { vegetarian: true },
+        allergens: ['gluten', 'dairy', 'eggs'],
+        available: true,
+        displayOrder: 6,
       },
     ];
 
     await Dish.create(dishes);
-    console.log('✅ Dishes created:', dishes.length);
+    console.log('✅ Products created:', dishes.length);
 
     console.log('\n🎉 Seed completed successfully!');
     console.log('📊 Summary:');
     console.log('   - Categories:', categories.length);
-    console.log('   - Dishes:', dishes.length);
+    console.log('   - Products:', dishes.length);
     console.log('\n🚀 You can now start the server with: npm run dev');
   } catch (error) {
     console.error('❌ Seed error:', error);
@@ -363,5 +599,4 @@ const seedData = async () => {
   }
 };
 
-// Run the seed
 connectDB().then(seedData);
