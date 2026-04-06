@@ -12,16 +12,32 @@ interface Category {
   name: { pt: string; en: string };
 }
 
-interface Variant {
-  name: { pt: string; en: string };
-  price: number | null;
-  available: boolean;
-}
-
 interface PortionSize {
   label: { pt: string; en: string };
-  price: number;
+  price: number | null;
   weight: string;
+}
+
+interface FormData {
+  name: { pt: string; en: string };
+  description: { pt: string; en: string };
+  baseDescription: { pt: string; en: string };
+  category: string;
+  price: string;
+  weight: string;
+  calories: string;
+  images: Array<{ url: string; isPrimary: boolean }>;
+  dietaryInfo: {
+    vegetarian: boolean;
+    vegan: boolean;
+    glutenFree: boolean;
+    dairyFree: boolean;
+    fitness: boolean;
+  };
+  flavor: { pt: string; en: string };
+  portionSizes: PortionSize[];
+  available: boolean;
+  displayOrder: number;
 }
 
 interface DishFormProps {
@@ -34,15 +50,15 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: { pt: '', en: '' },
     description: { pt: '', en: '' },
     baseDescription: { pt: '', en: '' },
     category: '',
-    price: 0,
+    price: '',
     weight: '',
-    calories: '' as string | number,
-    images: [] as Array<{ url: string; isPrimary: boolean }>,
+    calories: '',
+    images: [],
     dietaryInfo: {
       vegetarian: false,
       vegan: false,
@@ -50,8 +66,8 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       dairyFree: false,
       fitness: false,
     },
-    variants: [] as Variant[],
-    portionSizes: [] as PortionSize[],
+    flavor: { pt: '', en: '' },
+    portionSizes: [],
     available: true,
     displayOrder: 0,
   });
@@ -60,24 +76,28 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     fetchCategories();
     if (dish) {
       setFormData({
-        name: dish.name,
-        description: dish.description,
+        name: dish.name || { pt: '', en: '' },
+        description: dish.description || { pt: '', en: '' },
         baseDescription: dish.baseDescription || { pt: '', en: '' },
         category: dish.category ? dish.category._id || dish.category : '',
-        price: dish.price || 0,
+        price: dish.price != null ? String(dish.price) : '',
         weight: dish.weight || '',
-        calories: dish.calories || '',
+        calories: dish.calories != null ? String(dish.calories) : '',
         images: dish.images || [],
-        dietaryInfo: dish.dietaryInfo || {
-          vegetarian: false,
-          vegan: false,
-          glutenFree: false,
-          dairyFree: false,
-          fitness: false,
+        dietaryInfo: {
+          vegetarian: dish.dietaryInfo?.vegetarian || false,
+          vegan: dish.dietaryInfo?.vegan || false,
+          glutenFree: dish.dietaryInfo?.glutenFree || false,
+          dairyFree: dish.dietaryInfo?.dairyFree || false,
+          fitness: dish.dietaryInfo?.fitness || false,
         },
-        variants: dish.variants || [],
-        portionSizes: dish.portionSizes || [],
-        available: dish.available,
+        flavor: dish.flavor || { pt: '', en: '' },
+        portionSizes: (dish.portionSizes || []).map((p: any) => ({
+          label: p.label || { pt: '', en: '' },
+          price: p.price != null ? p.price : null,
+          weight: p.weight || '',
+        })),
+        available: dish.available !== false,
         displayOrder: dish.displayOrder || 0,
       });
     }
@@ -98,6 +118,18 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     }
   };
 
+  const updateField = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateNestedField = (parent: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [parent]: { ...(prev as any)[parent], [field]: value },
+    }));
+  };
+
+  // --- Images ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -126,57 +158,18 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       alert('Erro ao fazer upload da imagem');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
   const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handlePriceChange = (value: string) => {
-    const numValue = value === '' ? 0 : parseFloat(value);
-    setFormData(prev => ({
-      ...prev,
-      price: isNaN(numValue) ? 0 : numValue,
-    }));
-  };
-
-  // --- Variants ---
-  const addVariant = () => {
-    setFormData(prev => ({
-      ...prev,
-      variants: [
-        ...prev.variants,
-        { name: { pt: '', en: '' }, price: null, available: true },
-      ],
-    }));
-  };
-
-  const removeVariant = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      variants: prev.variants.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateVariant = (index: number, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      variants: prev.variants.map((v, i) => {
-        if (i !== index) return v;
-        if (field === 'name.pt')
-          return { ...v, name: { ...v.name, pt: value } };
-        if (field === 'name.en')
-          return { ...v, name: { ...v.name, en: value } };
-        if (field === 'price')
-          return { ...v, price: value === '' ? null : parseFloat(value) };
-        if (field === 'available') return { ...v, available: value };
-        return v;
-      }),
-    }));
+    setFormData(prev => {
+      const newImages = prev.images.filter((_, i) => i !== index);
+      if (newImages.length > 0 && !newImages.some(img => img.isPrimary)) {
+        newImages[0].isPrimary = true;
+      }
+      return { ...prev, images: newImages };
+    });
   };
 
   // --- Portion Sizes ---
@@ -185,7 +178,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       ...prev,
       portionSizes: [
         ...prev.portionSizes,
-        { label: { pt: '', en: '' }, price: 0, weight: '' },
+        { label: { pt: '', en: '' }, price: null, weight: '' },
       ],
     }));
   };
@@ -207,25 +200,55 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
         if (field === 'label.en')
           return { ...p, label: { ...p.label, en: value } };
         if (field === 'price')
-          return { ...p, price: value === '' ? 0 : parseFloat(value) };
+          return {
+            ...p,
+            price:
+              value === '' ? null : parseFloat(value.replace(',', '.')) || null,
+          };
         if (field === 'weight') return { ...p, weight: value };
         return p;
       }),
     }));
   };
 
+  // --- Submit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!formData.category) {
       alert('Por favor, selecione uma categoria');
       return;
     }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      alert('Por favor, insira um preço válido');
+      return;
+    }
+
     setLoading(true);
+
     try {
       const submitData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        baseDescription: formData.baseDescription,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        weight: formData.weight,
         calories: formData.calories === '' ? null : Number(formData.calories),
+        images: formData.images,
+        dietaryInfo: formData.dietaryInfo,
+        flavor: formData.flavor,
+        portionSizes: formData.portionSizes
+          .filter(p => p.label.pt.trim() !== '')
+          .map(p => ({
+            label: p.label,
+            price: p.price || 0,
+            weight: p.weight,
+          })),
+        available: formData.available,
+        displayOrder: formData.displayOrder,
       };
+
       await onSubmit(submitData);
     } finally {
       setLoading(false);
@@ -241,12 +264,8 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Input
             id='name-pt'
             value={formData.name.pt}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                name: { ...prev.name, pt: e.target.value },
-              }))
-            }
+            onChange={e => updateNestedField('name', 'pt', e.target.value)}
+            placeholder='Ex: Torta Salgada'
             required
           />
         </div>
@@ -255,13 +274,31 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Input
             id='name-en'
             value={formData.name.en}
-            onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                name: { ...prev.name, en: e.target.value },
-              }))
-            }
+            onChange={e => updateNestedField('name', 'en', e.target.value)}
+            placeholder='Ex: Savoury Pie'
             required
+          />
+        </div>
+      </div>
+
+      {/* Sabor */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div className='space-y-2'>
+          <Label htmlFor='flavor-pt'>Sabor (Português)</Label>
+          <Input
+            id='flavor-pt'
+            value={formData.flavor.pt}
+            onChange={e => updateNestedField('flavor', 'pt', e.target.value)}
+            placeholder='Ex: Cogumelos, Frango, Verduras...'
+          />
+        </div>
+        <div className='space-y-2'>
+          <Label htmlFor='flavor-en'>Flavour (English)</Label>
+          <Input
+            id='flavor-en'
+            value={formData.flavor.en}
+            onChange={e => updateNestedField('flavor', 'en', e.target.value)}
+            placeholder='Ex: Mushrooms, Chicken, Vegetables...'
           />
         </div>
       </div>
@@ -272,14 +309,12 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Label htmlFor='desc-pt'>Descrição (Português) *</Label>
           <textarea
             id='desc-pt'
-            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             value={formData.description.pt}
             onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                description: { ...prev.description, pt: e.target.value },
-              }))
+              updateNestedField('description', 'pt', e.target.value)
             }
+            placeholder='Descrição do produto em português'
             required
           />
         </div>
@@ -287,20 +322,18 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Label htmlFor='desc-en'>Descrição (English) *</Label>
           <textarea
             id='desc-en'
-            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             value={formData.description.en}
             onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                description: { ...prev.description, en: e.target.value },
-              }))
+              updateNestedField('description', 'en', e.target.value)
             }
+            placeholder='Product description in English'
             required
           />
         </div>
       </div>
 
-      {/* Base Description (tipo de massa, etc.) */}
+      {/* Base Description */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div className='space-y-2'>
           <Label htmlFor='base-pt'>Base/Massa (Português)</Label>
@@ -309,13 +342,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
             placeholder='Ex: Massa de batata-doce com farinhas de aveia e milho'
             value={formData.baseDescription.pt}
             onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                baseDescription: {
-                  ...prev.baseDescription,
-                  pt: e.target.value,
-                },
-              }))
+              updateNestedField('baseDescription', 'pt', e.target.value)
             }
           />
         </div>
@@ -326,29 +353,21 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
             placeholder='Ex: Sweet potato dough with oat and corn flour'
             value={formData.baseDescription.en}
             onChange={e =>
-              setFormData(prev => ({
-                ...prev,
-                baseDescription: {
-                  ...prev.baseDescription,
-                  en: e.target.value,
-                },
-              }))
+              updateNestedField('baseDescription', 'en', e.target.value)
             }
           />
         </div>
       </div>
 
       {/* Categoria, Preço, Peso, Calorias */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
         <div className='space-y-2'>
           <Label htmlFor='category'>Categoria *</Label>
           <select
             id='category'
-            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             value={formData.category}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, category: e.target.value }))
-            }
+            onChange={e => updateField('category', e.target.value)}
             required
           >
             {!formData.category && <option value=''>Selecione</option>}
@@ -363,10 +382,16 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Label htmlFor='price'>Preço (€) *</Label>
           <Input
             id='price'
-            type='number'
-            step='0.01'
-            value={formData.price || ''}
-            onChange={e => handlePriceChange(e.target.value)}
+            type='text'
+            inputMode='decimal'
+            placeholder='0.00'
+            value={formData.price}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === '' || /^[\d]*[.,]?[\d]{0,2}$/.test(val)) {
+                updateField('price', val.replace(',', '.'));
+              }
+            }}
             required
           />
         </div>
@@ -374,23 +399,46 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           <Label htmlFor='weight'>Peso</Label>
           <Input
             id='weight'
+            type='text'
             placeholder='Ex: 180g'
             value={formData.weight}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, weight: e.target.value }))
-            }
+            onChange={e => updateField('weight', e.target.value)}
           />
         </div>
         <div className='space-y-2'>
           <Label htmlFor='calories'>Calorias</Label>
           <Input
             id='calories'
-            type='number'
+            type='text'
+            inputMode='numeric'
             placeholder='kcal'
             value={formData.calories}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, calories: e.target.value }))
-            }
+            onChange={e => {
+              const val = e.target.value;
+              if (val === '' || /^\d*$/.test(val)) {
+                updateField('calories', val);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Ordem de exibição */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+        <div className='space-y-2'>
+          <Label htmlFor='displayOrder'>Ordem de Exibição</Label>
+          <Input
+            id='displayOrder'
+            type='text'
+            inputMode='numeric'
+            placeholder='0'
+            value={formData.displayOrder || ''}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === '' || /^\d*$/.test(val)) {
+                updateField('displayOrder', val === '' ? 0 : parseInt(val));
+              }
+            }}
           />
         </div>
       </div>
@@ -406,14 +454,19 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
                 alt='Product'
                 width={100}
                 height={100}
-                className='rounded-lg object-cover'
+                className='rounded-lg object-cover w-24 h-24'
               />
+              {img.isPrimary && (
+                <span className='absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-[10px] text-center py-0.5 rounded-b-lg'>
+                  Principal
+                </span>
+              )}
               <button
                 type='button'
                 onClick={() => removeImage(index)}
                 className='absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity'
               >
-                <X className='w-4 h-4' />
+                <X className='w-3 h-3' />
               </button>
             </div>
           ))}
@@ -437,212 +490,144 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       {/* Dietary Info */}
       <div className='space-y-2'>
         <Label>Informação Dietética</Label>
-        <div className='grid grid-cols-2 md:grid-cols-5 gap-4'>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={formData.dietaryInfo.fitness}
-              onChange={e =>
-                setFormData(prev => ({
-                  ...prev,
-                  dietaryInfo: {
-                    ...prev.dietaryInfo,
-                    fitness: e.target.checked,
-                  },
-                }))
-              }
-              className='rounded'
-            />
-            <span className='text-sm'>Fitness</span>
-          </label>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={formData.dietaryInfo.vegetarian}
-              onChange={e =>
-                setFormData(prev => ({
-                  ...prev,
-                  dietaryInfo: {
-                    ...prev.dietaryInfo,
-                    vegetarian: e.target.checked,
-                  },
-                }))
-              }
-              className='rounded'
-            />
-            <span className='text-sm'>Vegetariano</span>
-          </label>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={formData.dietaryInfo.vegan}
-              onChange={e =>
-                setFormData(prev => ({
-                  ...prev,
-                  dietaryInfo: { ...prev.dietaryInfo, vegan: e.target.checked },
-                }))
-              }
-              className='rounded'
-            />
-            <span className='text-sm'>Vegano</span>
-          </label>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={formData.dietaryInfo.glutenFree}
-              onChange={e =>
-                setFormData(prev => ({
-                  ...prev,
-                  dietaryInfo: {
-                    ...prev.dietaryInfo,
-                    glutenFree: e.target.checked,
-                  },
-                }))
-              }
-              className='rounded'
-            />
-            <span className='text-sm'>Sem Glúten</span>
-          </label>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={formData.dietaryInfo.dairyFree}
-              onChange={e =>
-                setFormData(prev => ({
-                  ...prev,
-                  dietaryInfo: {
-                    ...prev.dietaryInfo,
-                    dairyFree: e.target.checked,
-                  },
-                }))
-              }
-              className='rounded'
-            />
-            <span className='text-sm'>Sem Lactose</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Variants (Sabores) */}
-      <div className='space-y-3'>
-        <div className='flex items-center justify-between'>
-          <Label>Sabores / Variantes</Label>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={addVariant}
-          >
-            <Plus className='w-4 h-4 mr-1' /> Adicionar Sabor
-          </Button>
-        </div>
-        {formData.variants.map((variant, index) => (
-          <div
-            key={index}
-            className='grid grid-cols-1 md:grid-cols-4 gap-2 p-3 border rounded-lg'
-          >
-            <Input
-              placeholder='Nome PT'
-              value={variant.name.pt}
-              onChange={e => updateVariant(index, 'name.pt', e.target.value)}
-            />
-            <Input
-              placeholder='Name EN'
-              value={variant.name.en}
-              onChange={e => updateVariant(index, 'name.en', e.target.value)}
-            />
-            <Input
-              type='number'
-              step='0.01'
-              placeholder='Preço (opcional)'
-              value={variant.price ?? ''}
-              onChange={e => updateVariant(index, 'price', e.target.value)}
-            />
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={() => removeVariant(index)}
+        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3'>
+          {(
+            [
+              { key: 'fitness', label: 'Fitness' },
+              { key: 'vegetarian', label: 'Vegetariano' },
+              { key: 'vegan', label: 'Vegano' },
+              { key: 'glutenFree', label: 'Sem Glúten' },
+              { key: 'dairyFree', label: 'Sem Lactose' },
+            ] as const
+          ).map(({ key, label }) => (
+            <label
+              key={key}
+              className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
+                formData.dietaryInfo[key]
+                  ? 'border-primary bg-primary/5'
+                  : 'border-input hover:border-primary/50'
+              }`}
             >
-              <Trash2 className='w-4 h-4 text-destructive' />
-            </Button>
-          </div>
-        ))}
+              <input
+                type='checkbox'
+                checked={formData.dietaryInfo[key]}
+                onChange={e =>
+                  updateNestedField('dietaryInfo', key, e.target.checked)
+                }
+                className='rounded'
+              />
+              <span className='text-sm'>{label}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Portion Sizes */}
       <div className='space-y-3'>
         <div className='flex items-center justify-between'>
-          <Label>Tamanhos de Porção</Label>
+          <div>
+            <Label className='text-base'>Tamanhos de Porção</Label>
+            <p className='text-xs text-muted-foreground mt-0.5'>
+              Porções com preços diferentes (ex: Individual, Refeição, Família)
+            </p>
+          </div>
           <Button
             type='button'
             variant='outline'
             size='sm'
             onClick={addPortionSize}
           >
-            <Plus className='w-4 h-4 mr-1' /> Adicionar Porção
+            <Plus className='w-4 h-4 mr-1' /> Adicionar
           </Button>
         </div>
-        {formData.portionSizes.map((portion, index) => (
-          <div
-            key={index}
-            className='grid grid-cols-1 md:grid-cols-5 gap-2 p-3 border rounded-lg'
-          >
-            <Input
-              placeholder='Label PT (Ex: Individual)'
-              value={portion.label.pt}
-              onChange={e =>
-                updatePortionSize(index, 'label.pt', e.target.value)
-              }
-            />
-            <Input
-              placeholder='Label EN (Ex: Individual)'
-              value={portion.label.en}
-              onChange={e =>
-                updatePortionSize(index, 'label.en', e.target.value)
-              }
-            />
-            <Input
-              type='number'
-              step='0.01'
-              placeholder='Preço €'
-              value={portion.price || ''}
-              onChange={e => updatePortionSize(index, 'price', e.target.value)}
-            />
-            <Input
-              placeholder='Peso (Ex: 350g)'
-              value={portion.weight}
-              onChange={e => updatePortionSize(index, 'weight', e.target.value)}
-            />
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={() => removePortionSize(index)}
+        {formData.portionSizes.length === 0 && (
+          <p className='text-sm text-muted-foreground italic'>
+            Nenhuma porção adicionada.
+          </p>
+        )}
+        <div className='space-y-2'>
+          {formData.portionSizes.map((portion, index) => (
+            <div
+              key={index}
+              className='flex items-center gap-2 p-3 border rounded-lg bg-card flex-wrap sm:flex-nowrap'
             >
-              <Trash2 className='w-4 h-4 text-destructive' />
-            </Button>
-          </div>
-        ))}
+              <Input
+                placeholder='Label PT (ex: Individual)'
+                value={portion.label.pt}
+                onChange={e =>
+                  updatePortionSize(index, 'label.pt', e.target.value)
+                }
+                className='flex-1 min-w-[120px]'
+              />
+              <Input
+                placeholder='Label EN (ex: Individual)'
+                value={portion.label.en}
+                onChange={e =>
+                  updatePortionSize(index, 'label.en', e.target.value)
+                }
+                className='flex-1 min-w-[120px]'
+              />
+              <Input
+                type='text'
+                inputMode='decimal'
+                placeholder='Preço €'
+                className='w-24'
+                value={portion.price != null ? String(portion.price) : ''}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === '' || /^[\d]*[.,]?[\d]{0,2}$/.test(val)) {
+                    updatePortionSize(index, 'price', val);
+                  }
+                }}
+              />
+              <Input
+                type='text'
+                placeholder='Peso'
+                className='w-20'
+                value={portion.weight}
+                onChange={e =>
+                  updatePortionSize(index, 'weight', e.target.value)
+                }
+              />
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => removePortionSize(index)}
+                className='text-destructive hover:text-destructive shrink-0'
+              >
+                <Trash2 className='w-4 h-4' />
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Available */}
       <div className='space-y-2'>
-        <label className='flex items-center space-x-2'>
+        <label
+          className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors w-fit ${
+            formData.available
+              ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+              : 'border-destructive bg-destructive/5'
+          }`}
+        >
           <input
             type='checkbox'
             checked={formData.available}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, available: e.target.checked }))
-            }
+            onChange={e => updateField('available', e.target.checked)}
             className='rounded'
           />
-          <span className='text-sm font-medium'>Disponível no menu</span>
+          <span className='text-sm font-medium'>
+            {formData.available
+              ? '✅ Disponível no menu'
+              : '❌ Indisponível no menu'}
+          </span>
         </label>
       </div>
 
       {/* Submit */}
-      <div className='flex gap-4 pt-4'>
+      <div className='flex gap-4 pt-4 border-t'>
         <Button type='submit' disabled={loading} className='flex-1'>
           {loading ? (
             <>

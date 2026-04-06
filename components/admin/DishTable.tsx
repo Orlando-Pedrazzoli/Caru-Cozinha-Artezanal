@@ -14,9 +14,9 @@ interface Dish {
   category?: { name: { pt: string; en: string } } | null;
   price: number;
   weight?: string;
+  flavor?: { pt: string; en: string };
   available: boolean;
   images?: Array<{ url: string }>;
-  variants?: Array<{ name: { pt: string; en: string } }>;
 }
 
 interface DishTableProps {
@@ -40,10 +40,10 @@ export function DishTable({ dishes, onDelete }: DishTableProps) {
           <tr className='border-b'>
             <th className='text-left p-4 font-medium'>Imagem</th>
             <th className='text-left p-4 font-medium'>Nome</th>
+            <th className='text-left p-4 font-medium'>Sabor</th>
             <th className='text-left p-4 font-medium'>Categoria</th>
             <th className='text-left p-4 font-medium'>Preço</th>
             <th className='text-left p-4 font-medium'>Peso</th>
-            <th className='text-left p-4 font-medium'>Sabores</th>
             <th className='text-left p-4 font-medium'>Status</th>
             <th className='text-right p-4 font-medium'>Ações</th>
           </tr>
@@ -75,6 +75,13 @@ export function DishTable({ dishes, onDelete }: DishTableProps) {
                 </div>
               </td>
               <td className='p-4 text-sm'>
+                {dish.flavor?.pt ? (
+                  <Badge variant='secondary'>{dish.flavor.pt}</Badge>
+                ) : (
+                  <span className='text-muted-foreground'>—</span>
+                )}
+              </td>
+              <td className='p-4 text-sm'>
                 {dish.category && dish.category.name ? (
                   dish.category.name.pt
                 ) : (
@@ -86,11 +93,6 @@ export function DishTable({ dishes, onDelete }: DishTableProps) {
               <td className='p-4 font-medium'>{formatPrice(dish.price)}</td>
               <td className='p-4 text-sm text-muted-foreground'>
                 {dish.weight || '—'}
-              </td>
-              <td className='p-4 text-sm text-muted-foreground'>
-                {dish.variants && dish.variants.length > 0
-                  ? `${dish.variants.length} sabores`
-                  : '—'}
               </td>
               <td className='p-4'>
                 <Badge variant={dish.available ? 'success' : 'destructive'}>

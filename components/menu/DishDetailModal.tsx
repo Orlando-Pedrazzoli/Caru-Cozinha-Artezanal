@@ -35,11 +35,7 @@ interface DishDetailModalProps {
     };
     badges?: Array<{ type: string }>;
     allergens?: string[];
-    variants?: Array<{
-      name: { pt: string; en: string };
-      price?: number;
-      available?: boolean;
-    }>;
+    flavor?: { pt: string; en: string };
     portionSizes?: Array<{
       label: { pt: string; en: string };
       price: number;
@@ -59,12 +55,16 @@ export function DishDetailModal({ dish, open, onClose }: DishDetailModalProps) {
     ? primaryImage.url
     : primaryImage?.url || '/placeholder-food.jpg';
 
+  const displayName = dish.flavor?.[locale]
+    ? `${dish.name[locale]} ( ${dish.flavor[locale]} )`
+    : dish.name[locale];
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='text-2xl font-display pr-8'>
-            {dish.name[locale]}
+            {displayName}
           </DialogTitle>
           <DialogDescription className='sr-only'>
             {locale === 'pt' ? 'Detalhes do produto' : 'Product details'}
@@ -82,7 +82,7 @@ export function DishDetailModal({ dish, open, onClose }: DishDetailModalProps) {
               ) : (
                 <Image
                   src={imageUrl}
-                  alt={dish.name[locale]}
+                  alt={displayName}
                   fill
                   className='object-cover'
                   sizes='(max-width: 768px) 100vw, 600px'
@@ -151,26 +151,6 @@ export function DishDetailModal({ dish, open, onClose }: DishDetailModalProps) {
               </p>
             )}
           </div>
-
-          {/* Variants (flavours) */}
-          {dish.variants && dish.variants.length > 0 && (
-            <div>
-              <h3 className='font-semibold text-lg mb-2'>
-                {locale === 'pt' ? 'Sabores Disponíveis' : 'Available Flavours'}
-              </h3>
-              <div className='flex flex-wrap gap-2'>
-                {dish.variants
-                  .filter(v => v.available !== false)
-                  .map((variant, i) => (
-                    <Badge key={i} variant='secondary'>
-                      {variant.name[locale]}
-                      {variant.price != null &&
-                        ` — ${formatPrice(variant.price, locale === 'pt' ? 'pt-PT' : 'en-US')}`}
-                    </Badge>
-                  ))}
-              </div>
-            </div>
-          )}
 
           {/* Portion Sizes */}
           {dish.portionSizes && dish.portionSizes.length > 0 && (

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Search, Globe, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Fuse from 'fuse.js';
 
 interface Dish {
@@ -181,7 +182,7 @@ export default function MenuPage() {
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
     if (contentTopRef.current) {
-      const offset = 136;
+      const offset = 140;
       const elementPosition = contentTopRef.current.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({
@@ -210,16 +211,18 @@ export default function MenuPage() {
     <div className='min-h-screen bg-background'>
       {/* Header */}
       <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='container mx-auto px-4 py-4'>
+        <div className='container mx-auto px-4 py-2'>
           <div className='flex items-center justify-between'>
-            <div>
-              <h1 className='text-2xl font-bold text-primary font-display'>
-                {t('restaurant.name')}
-              </h1>
-              <p className='text-sm text-muted-foreground'>
-                {t('restaurant.tagline')}
-              </p>
-            </div>
+            <Link href={`/${locale}`}>
+              <Image
+                src='/carulogo-nav.png'
+                alt='Caru - Cozinha Artesanal'
+                width={180}
+                height={64}
+                className='h-16 w-auto object-contain'
+                priority
+              />
+            </Link>
             <div className='flex items-center gap-2'>
               <ThemeToggle />
               <Link href={locale === 'pt' ? '/en' : '/pt'}>
@@ -262,7 +265,7 @@ export default function MenuPage() {
       </div>
 
       {/* Category Tabs with dynamic colors */}
-      <div className='sticky top-[77px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b'>
+      <div className='sticky top-[80px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b'>
         <div className='container mx-auto px-4'>
           <div className='flex gap-2 overflow-x-auto py-4 scrollbar-hide'>
             <Button
@@ -306,7 +309,7 @@ export default function MenuPage() {
           <div
             className={`lg:col-span-1 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}
           >
-            <div className='sticky top-[152px]'>
+            <div className='sticky top-[156px]'>
               <MenuFilters filters={filters} onFilterChange={setFilters} />
             </div>
           </div>
@@ -343,23 +346,34 @@ export default function MenuPage() {
 
       {/* Footer */}
       <footer className='border-t mt-12'>
-        <div className='container mx-auto px-4 py-6'>
-          <div className='text-center text-sm text-muted-foreground'>
-            <p>{t('restaurant.address')}</p>
-            <p>{t('restaurant.city')}</p>
-            <p className='mt-2'>{t('restaurant.hours')}</p>
-            <p className='mt-4'>{t('footer.copyright')}</p>
-            <p className='mt-1'>
-              {locale === 'pt' ? 'Desenvolvido por ' : 'Developed by '}
-              <a
-                href='https://orlandopedrazzoli.com'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-primary hover:underline'
-              >
-                orlandopedrazzoli.com
-              </a>
-            </p>
+        <div className='container mx-auto px-4 py-8'>
+          <div className='flex flex-col items-center text-center'>
+            {/* Footer Logo */}
+            <Image
+              src='/carulogo-footer.png'
+              alt='Caru - Cozinha Artesanal'
+              width={200}
+              height={80}
+              className='h-20 w-auto object-contain mb-6'
+            />
+
+            {/* Copyright & Credits */}
+            <div className='text-sm text-muted-foreground space-y-1'>
+              <p>{t('footer.copyright')}</p>
+              <p>
+                {locale === 'pt' ? 'Desenvolvido por ' : 'Developed by '}
+                <a
+                  href='https://orlandopedrazzoli.com'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-primary hover:underline'
+                >
+                  orlandopedrazzoli.com
+                </a>
+              </p>
+            </div>
+
+            {/* Admin Link */}
             <div className='mt-4'>
               <Link href='/admin'>
                 <Button variant='ghost' size='sm'>

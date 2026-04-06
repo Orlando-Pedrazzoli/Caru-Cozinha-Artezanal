@@ -35,11 +35,7 @@ interface DishProps {
       fitness?: boolean;
     };
     allergens?: string[];
-    variants?: Array<{
-      name: { pt: string; en: string };
-      price?: number;
-      available?: boolean;
-    }>;
+    flavor?: { pt: string; en: string };
     portionSizes?: Array<{
       label: { pt: string; en: string };
       price: number;
@@ -68,7 +64,10 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
     }
   };
 
-  // Calculate display price
+  const displayName = dish.flavor?.[locale]
+    ? `${dish.name[locale]} ( ${dish.flavor[locale]} )`
+    : dish.name[locale];
+
   const displayPrice = () => {
     if (dish.portionSizes && dish.portionSizes.length > 0) {
       const minPrice = Math.min(...dish.portionSizes.map(p => p.price));
@@ -89,7 +88,7 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
             ) : (
               <Image
                 src={imageUrl}
-                alt={dish.name[locale]}
+                alt={displayName}
                 fill
                 className='object-cover'
                 sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
@@ -106,19 +105,14 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
           <div className='space-y-2'>
             <CardTitle
               className='text-lg leading-tight line-clamp-2 min-h-[2.8em]'
-              title={dish.name[locale]}
+              title={displayName}
             >
-              {dish.name[locale]}
+              {displayName}
             </CardTitle>
             <div className='flex justify-between items-center'>
               <span className='text-lg font-bold text-primary'>
                 {displayPrice()}
               </span>
-              {dish.badges && dish.badges.some(b => b.type === 'popular') && (
-                <Badge variant='warning' className='text-xs'>
-                  🔥 {locale === 'pt' ? 'Popular' : 'Popular'}
-                </Badge>
-              )}
             </div>
             {dish.weight && (
               <span className='text-xs text-muted-foreground'>
@@ -165,37 +159,6 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
               </Badge>
             )}
           </div>
-
-          {/* Variants (flavours) */}
-          {dish.variants && dish.variants.length > 0 && (
-            <div className='flex flex-wrap gap-1'>
-              {dish.variants
-                .filter(v => v.available !== false)
-                .map((variant, i) => (
-                  <Badge key={i} variant='secondary' className='text-xs'>
-                    {variant.name[locale]}
-                  </Badge>
-                ))}
-            </div>
-          )}
-
-          {/* Badges (non-popular) */}
-          {dish.badges && dish.badges.length > 0 && (
-            <div className='flex flex-wrap gap-1'>
-              {dish.badges
-                .filter(badge => badge.type !== 'popular')
-                .map((badge, index) => (
-                  <Badge key={index} variant='warning' className='text-xs'>
-                    {badge.type === 'artesanal' &&
-                      (locale === 'pt' ? '🤲 Artesanal' : '🤲 Artisanal')}
-                    {badge.type === 'novo' &&
-                      (locale === 'pt' ? '✨ Novo' : '✨ New')}
-                    {badge.type === 'sazonal' &&
-                      (locale === 'pt' ? '🍂 Sazonal' : '🍂 Seasonal')}
-                  </Badge>
-                ))}
-            </div>
-          )}
 
           {/* Short description */}
           <p className='text-xs text-muted-foreground line-clamp-2'>

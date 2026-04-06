@@ -48,19 +48,10 @@ const DishSchema = new mongoose.Schema(
       fitness: { type: Boolean, default: false },
     },
     allergens: [String],
-    variants: [
-      {
-        name: {
-          pt: String,
-          en: String,
-        },
-        price: Number,
-        available: {
-          type: Boolean,
-          default: true,
-        },
-      },
-    ],
+    flavor: {
+      pt: { type: String, default: '' },
+      en: { type: String, default: '' },
+    },
     portionSizes: [
       {
         label: {
@@ -104,13 +95,14 @@ const DishSchema = new mongoose.Schema(
   },
 );
 
-// Indexes for performance
 DishSchema.index({ category: 1, displayOrder: 1 });
 DishSchema.index({
   'name.pt': 'text',
   'name.en': 'text',
   'description.pt': 'text',
   'description.en': 'text',
+  'flavor.pt': 'text',
+  'flavor.en': 'text',
   searchTags: 'text',
 });
 DishSchema.index({
