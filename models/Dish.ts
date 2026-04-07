@@ -73,6 +73,37 @@ const DishSchema = new mongoose.Schema(
       },
     ],
     searchTags: [String],
+    // Agenda semanal — dias em que o produto está disponível
+    schedule: {
+      monday: { type: Boolean, default: false },
+      tuesday: { type: Boolean, default: false },
+      wednesday: { type: Boolean, default: false },
+      thursday: { type: Boolean, default: false },
+      friday: { type: Boolean, default: false },
+      saturday: { type: Boolean, default: false },
+      sunday: { type: Boolean, default: false },
+      customDates: [
+        {
+          date: Date,
+          available: Boolean,
+          note: { pt: String, en: String },
+        },
+      ],
+    },
+    // Controlo de stock
+    stock: {
+      enabled: { type: Boolean, default: false },
+      quantity: { type: Number, default: 0 },
+      reserved: { type: Number, default: 0 },
+      lowStockThreshold: { type: Number, default: 3 },
+    },
+    // Configurações de encomenda
+    orderSettings: {
+      minQuantity: { type: Number, default: 1 },
+      maxQuantity: { type: Number, default: 10 },
+      leadTimeHours: { type: Number, default: 0 },
+      acceptSameDay: { type: Boolean, default: true },
+    },
     displayOrder: {
       type: Number,
       default: 0,

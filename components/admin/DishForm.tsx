@@ -4,7 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Upload, X, Plus, Trash2 } from 'lucide-react';
+import {
+  Loader2,
+  Upload,
+  X,
+  Plus,
+  Trash2,
+  Calendar,
+  Package,
+} from 'lucide-react';
 import Image from 'next/image';
 
 interface Category {
@@ -16,6 +24,29 @@ interface PortionSize {
   label: { pt: string; en: string };
   price: number | null;
   weight: string;
+}
+
+interface ScheduleData {
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+  sunday: boolean;
+}
+
+interface StockData {
+  enabled: boolean;
+  quantity: number;
+  lowStockThreshold: number;
+}
+
+interface OrderSettingsData {
+  minQuantity: number;
+  maxQuantity: number;
+  leadTimeHours: number;
+  acceptSameDay: boolean;
 }
 
 interface FormData {
@@ -36,6 +67,9 @@ interface FormData {
   };
   flavor: { pt: string; en: string };
   portionSizes: PortionSize[];
+  schedule: ScheduleData;
+  stock: StockData;
+  orderSettings: OrderSettingsData;
   available: boolean;
   displayOrder: number;
 }
@@ -44,6 +78,16 @@ interface DishFormProps {
   dish?: any;
   onSubmit: (data: any) => void;
 }
+
+const DAYS = [
+  { key: 'monday', label: 'Segunda' },
+  { key: 'tuesday', label: 'Terça' },
+  { key: 'wednesday', label: 'Quarta' },
+  { key: 'thursday', label: 'Quinta' },
+  { key: 'friday', label: 'Sexta' },
+  { key: 'saturday', label: 'Sábado' },
+  { key: 'sunday', label: 'Domingo' },
+] as const;
 
 export function DishForm({ dish, onSubmit }: DishFormProps) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -68,6 +112,26 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     },
     flavor: { pt: '', en: '' },
     portionSizes: [],
+    schedule: {
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+      sunday: false,
+    },
+    stock: {
+      enabled: false,
+      quantity: 0,
+      lowStockThreshold: 3,
+    },
+    orderSettings: {
+      minQuantity: 1,
+      maxQuantity: 10,
+      leadTimeHours: 0,
+      acceptSameDay: true,
+    },
     available: true,
     displayOrder: 0,
   });
@@ -97,6 +161,26 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           price: p.price != null ? p.price : null,
           weight: p.weight || '',
         })),
+        schedule: {
+          monday: dish.schedule?.monday || false,
+          tuesday: dish.schedule?.tuesday || false,
+          wednesday: dish.schedule?.wednesday || false,
+          thursday: dish.schedule?.thursday || false,
+          friday: dish.schedule?.friday || false,
+          saturday: dish.schedule?.saturday || false,
+          sunday: dish.schedule?.sunday || false,
+        },
+        stock: {
+          enabled: dish.stock?.enabled || false,
+          quantity: dish.stock?.quantity || 0,
+          lowStockThreshold: dish.stock?.lowStockThreshold || 3,
+        },
+        orderSettings: {
+          minQuantity: dish.orderSettings?.minQuantity || 1,
+          maxQuantity: dish.orderSettings?.maxQuantity || 10,
+          leadTimeHours: dish.orderSettings?.leadTimeHours || 0,
+          acceptSameDay: dish.orderSettings?.acceptSameDay !== false,
+        },
         available: dish.available !== false,
         displayOrder: dish.displayOrder || 0,
       });
@@ -126,6 +210,47 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     setFormData(prev => ({
       ...prev,
       [parent]: { ...(prev as any)[parent], [field]: value },
+    }));
+  };
+
+  const toggleScheduleDay = (day: string) => {
+    setFormData(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: !prev.schedule[day as keyof ScheduleData],
+      },
+    }));
+  };
+
+  const toggleAllDays = (value: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      schedule: {
+        monday: value,
+        tuesday: value,
+        wednesday: value,
+        thursday: value,
+        friday: value,
+        saturday: value,
+        sunday: value,
+      },
+    }));
+  };
+
+  const toggleWeekdays = () => {
+    setFormData(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        monday: true,
+        tuesday: true,
+        wednesday: true,
+        thursday: true,
+        friday: true,
+        saturday: false,
+        sunday: false,
+      },
     }));
   };
 
@@ -245,6 +370,9 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
             price: p.price || 0,
             weight: p.weight,
           })),
+        schedule: formData.schedule,
+        stock: formData.stock,
+        orderSettings: formData.orderSettings,
         available: formData.available,
         displayOrder: formData.displayOrder,
       };
@@ -255,129 +383,137 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     }
   };
 
+  const activeDaysCount = Object.values(formData.schedule).filter(
+    Boolean,
+  ).length;
+
   return (
     <form onSubmit={handleSubmit} className='space-y-6'>
-      {/* Nome */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* Nome PT/EN */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <Label htmlFor='name-pt'>Nome (Português) *</Label>
+          <Label htmlFor='namePt'>Nome (PT) *</Label>
           <Input
-            id='name-pt'
+            id='namePt'
             value={formData.name.pt}
             onChange={e => updateNestedField('name', 'pt', e.target.value)}
-            placeholder='Ex: Torta Salgada'
+            placeholder='Nome em português'
             required
           />
         </div>
         <div className='space-y-2'>
-          <Label htmlFor='name-en'>Nome (English) *</Label>
+          <Label htmlFor='nameEn'>Nome (EN) *</Label>
           <Input
-            id='name-en'
+            id='nameEn'
             value={formData.name.en}
             onChange={e => updateNestedField('name', 'en', e.target.value)}
-            placeholder='Ex: Savoury Pie'
+            placeholder='Name in English'
             required
           />
         </div>
       </div>
 
-      {/* Sabor */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* Sabor PT/EN */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <Label htmlFor='flavor-pt'>Sabor (Português)</Label>
+          <Label htmlFor='flavorPt'>Sabor (PT)</Label>
           <Input
-            id='flavor-pt'
+            id='flavorPt'
             value={formData.flavor.pt}
             onChange={e => updateNestedField('flavor', 'pt', e.target.value)}
-            placeholder='Ex: Cogumelos, Frango, Verduras...'
+            placeholder='Ex: Frango, Cogumelos'
           />
         </div>
         <div className='space-y-2'>
-          <Label htmlFor='flavor-en'>Flavour (English)</Label>
+          <Label htmlFor='flavorEn'>Sabor (EN)</Label>
           <Input
-            id='flavor-en'
+            id='flavorEn'
             value={formData.flavor.en}
             onChange={e => updateNestedField('flavor', 'en', e.target.value)}
-            placeholder='Ex: Mushrooms, Chicken, Vegetables...'
+            placeholder='Ex: Chicken, Mushrooms'
           />
         </div>
       </div>
 
-      {/* Descrição */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* Descrição PT/EN */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <Label htmlFor='desc-pt'>Descrição (Português) *</Label>
+          <Label htmlFor='descPt'>Descrição (PT) *</Label>
           <textarea
-            id='desc-pt'
-            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+            id='descPt'
             value={formData.description.pt}
             onChange={e =>
               updateNestedField('description', 'pt', e.target.value)
             }
-            placeholder='Descrição do produto em português'
+            placeholder='Descrição em português'
+            rows={3}
+            className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none'
             required
           />
         </div>
         <div className='space-y-2'>
-          <Label htmlFor='desc-en'>Descrição (English) *</Label>
+          <Label htmlFor='descEn'>Descrição (EN) *</Label>
           <textarea
-            id='desc-en'
-            className='flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+            id='descEn'
             value={formData.description.en}
             onChange={e =>
               updateNestedField('description', 'en', e.target.value)
             }
-            placeholder='Product description in English'
+            placeholder='Description in English'
+            rows={3}
+            className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none'
             required
           />
         </div>
       </div>
 
-      {/* Base Description */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* Base Description PT/EN */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <Label htmlFor='base-pt'>Base/Massa (Português)</Label>
+          <Label htmlFor='baseDescPt'>Desc. Base (PT)</Label>
           <Input
-            id='base-pt'
-            placeholder='Ex: Massa de batata-doce com farinhas de aveia e milho'
+            id='baseDescPt'
             value={formData.baseDescription.pt}
             onChange={e =>
               updateNestedField('baseDescription', 'pt', e.target.value)
             }
+            placeholder='Ex: Massa amanteigada'
           />
         </div>
         <div className='space-y-2'>
-          <Label htmlFor='base-en'>Base/Dough (English)</Label>
+          <Label htmlFor='baseDescEn'>Desc. Base (EN)</Label>
           <Input
-            id='base-en'
-            placeholder='Ex: Sweet potato dough with oat and corn flour'
+            id='baseDescEn'
             value={formData.baseDescription.en}
             onChange={e =>
               updateNestedField('baseDescription', 'en', e.target.value)
             }
+            placeholder='Ex: Buttery pastry'
           />
         </div>
       </div>
 
-      {/* Categoria, Preço, Peso, Calorias */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-        <div className='space-y-2'>
-          <Label htmlFor='category'>Categoria *</Label>
-          <select
-            id='category'
-            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-            value={formData.category}
-            onChange={e => updateField('category', e.target.value)}
-            required
-          >
-            {!formData.category && <option value=''>Selecione</option>}
-            {categories.map(cat => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name.pt}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Categoria */}
+      <div className='space-y-2'>
+        <Label htmlFor='category'>Categoria *</Label>
+        <select
+          id='category'
+          value={formData.category}
+          onChange={e => updateField('category', e.target.value)}
+          className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          required
+        >
+          <option value=''>Selecionar categoria</option>
+          {categories.map(cat => (
+            <option key={cat._id} value={cat._id}>
+              {cat.name.pt}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Preço / Peso / Calorias */}
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
         <div className='space-y-2'>
           <Label htmlFor='price'>Preço (€) *</Label>
           <Input
@@ -420,6 +556,260 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               }
             }}
           />
+        </div>
+      </div>
+
+      {/* ============================================= */}
+      {/* AGENDA SEMANAL */}
+      {/* ============================================= */}
+      <div className='space-y-3 p-4 border rounded-lg bg-blue-50/50 border-blue-200'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <Calendar className='w-5 h-5 text-blue-600' />
+            <Label className='text-base font-semibold'>Agenda Semanal</Label>
+            {activeDaysCount > 0 && (
+              <span className='text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full'>
+                {activeDaysCount} dia{activeDaysCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <div className='flex gap-1'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='text-xs h-7'
+              onClick={toggleWeekdays}
+            >
+              Seg-Sex
+            </Button>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='text-xs h-7'
+              onClick={() => toggleAllDays(true)}
+            >
+              Todos
+            </Button>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='text-xs h-7'
+              onClick={() => toggleAllDays(false)}
+            >
+              Limpar
+            </Button>
+          </div>
+        </div>
+        <p className='text-xs text-muted-foreground'>
+          Selecione os dias em que este produto está disponível para encomenda.
+          O cliente verá &quot;Disponível hoje&quot; ou os próximos dias
+          disponíveis.
+        </p>
+        <div className='grid grid-cols-7 gap-2'>
+          {DAYS.map(({ key, label }) => {
+            const active = formData.schedule[key as keyof ScheduleData];
+            return (
+              <button
+                key={key}
+                type='button'
+                onClick={() => toggleScheduleDay(key)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all text-center ${
+                  active
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                }`}
+              >
+                <span className='text-xs font-medium'>{label.slice(0, 3)}</span>
+                <span className='text-lg'>{active ? '✓' : '—'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ============================================= */}
+      {/* STOCK */}
+      {/* ============================================= */}
+      <div
+        className={`space-y-3 p-4 border rounded-lg ${
+          formData.stock.enabled
+            ? 'bg-green-50/50 border-green-200'
+            : 'bg-gray-50/50 border-gray-200'
+        }`}
+      >
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <Package
+              className={`w-5 h-5 ${formData.stock.enabled ? 'text-green-600' : 'text-gray-400'}`}
+            />
+            <Label className='text-base font-semibold'>Controlo de Stock</Label>
+          </div>
+          <label className='flex items-center gap-2 cursor-pointer'>
+            <input
+              type='checkbox'
+              checked={formData.stock.enabled}
+              onChange={e =>
+                updateNestedField('stock', 'enabled', e.target.checked)
+              }
+              className='rounded'
+            />
+            <span className='text-sm'>
+              {formData.stock.enabled ? 'Ativo' : 'Desativado'}
+            </span>
+          </label>
+        </div>
+
+        {formData.stock.enabled && (
+          <>
+            <p className='text-xs text-muted-foreground'>
+              Quando o stock chegar a zero, o produto aparece como
+              &quot;Esgotado&quot; no menu.
+            </p>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+              <div className='space-y-1'>
+                <Label htmlFor='stockQty' className='text-sm'>
+                  Quantidade disponível
+                </Label>
+                <Input
+                  id='stockQty'
+                  type='text'
+                  inputMode='numeric'
+                  value={formData.stock.quantity}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === '' || /^\d*$/.test(val)) {
+                      updateNestedField(
+                        'stock',
+                        'quantity',
+                        val === '' ? 0 : parseInt(val),
+                      );
+                    }
+                  }}
+                />
+              </div>
+              <div className='space-y-1'>
+                <Label htmlFor='stockThreshold' className='text-sm'>
+                  Alerta de stock baixo
+                </Label>
+                <Input
+                  id='stockThreshold'
+                  type='text'
+                  inputMode='numeric'
+                  value={formData.stock.lowStockThreshold}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === '' || /^\d*$/.test(val)) {
+                      updateNestedField(
+                        'stock',
+                        'lowStockThreshold',
+                        val === '' ? 0 : parseInt(val),
+                      );
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ============================================= */}
+      {/* CONFIGURAÇÕES DE ENCOMENDA */}
+      {/* ============================================= */}
+      <div className='space-y-3 p-4 border rounded-lg bg-amber-50/50 border-amber-200'>
+        <div className='flex items-center gap-2'>
+          <span className='text-lg'>🛒</span>
+          <Label className='text-base font-semibold'>
+            Configurações de Encomenda
+          </Label>
+        </div>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+          <div className='space-y-1'>
+            <Label htmlFor='minQty' className='text-sm'>
+              Quantidade mínima
+            </Label>
+            <Input
+              id='minQty'
+              type='text'
+              inputMode='numeric'
+              value={formData.orderSettings.minQuantity}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '' || /^\d*$/.test(val)) {
+                  updateNestedField(
+                    'orderSettings',
+                    'minQuantity',
+                    val === '' ? 1 : parseInt(val),
+                  );
+                }
+              }}
+            />
+          </div>
+          <div className='space-y-1'>
+            <Label htmlFor='maxQty' className='text-sm'>
+              Quantidade máxima
+            </Label>
+            <Input
+              id='maxQty'
+              type='text'
+              inputMode='numeric'
+              value={formData.orderSettings.maxQuantity}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '' || /^\d*$/.test(val)) {
+                  updateNestedField(
+                    'orderSettings',
+                    'maxQuantity',
+                    val === '' ? 10 : parseInt(val),
+                  );
+                }
+              }}
+            />
+          </div>
+          <div className='space-y-1'>
+            <Label htmlFor='leadTime' className='text-sm'>
+              Antecedência mínima (horas)
+            </Label>
+            <Input
+              id='leadTime'
+              type='text'
+              inputMode='numeric'
+              value={formData.orderSettings.leadTimeHours}
+              onChange={e => {
+                const val = e.target.value;
+                if (val === '' || /^\d*$/.test(val)) {
+                  updateNestedField(
+                    'orderSettings',
+                    'leadTimeHours',
+                    val === '' ? 0 : parseInt(val),
+                  );
+                }
+              }}
+            />
+            <p className='text-xs text-muted-foreground'>
+              0 = aceita encomendas para o próprio dia
+            </p>
+          </div>
+          <div className='space-y-1 flex items-end'>
+            <label className='flex items-center gap-2 cursor-pointer p-2 border rounded-md w-full'>
+              <input
+                type='checkbox'
+                checked={formData.orderSettings.acceptSameDay}
+                onChange={e =>
+                  updateNestedField(
+                    'orderSettings',
+                    'acceptSameDay',
+                    e.target.checked,
+                  )
+                }
+                className='rounded'
+              />
+              <span className='text-sm'>Aceita encomendas no próprio dia</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -608,7 +998,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
         <label
           className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors w-fit ${
             formData.available
-              ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
+              ? 'border-green-500 bg-green-50'
               : 'border-destructive bg-destructive/5'
           }`}
         >

@@ -146,6 +146,46 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* Quick Navigation — Encomendas, Agenda, Stock */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-8'>
+          <Link href='/admin/orders'>
+            <Card className='hover:shadow-md transition-shadow cursor-pointer border-amber-200 bg-amber-50/50'>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-lg flex items-center gap-2'>
+                  📦 Encomendas
+                </CardTitle>
+                <CardDescription>
+                  Gerir pedidos, confirmar entregas e pagamentos
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href='/admin/schedule'>
+            <Card className='hover:shadow-md transition-shadow cursor-pointer border-blue-200 bg-blue-50/50'>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-lg flex items-center gap-2'>
+                  📅 Agenda Semanal
+                </CardTitle>
+                <CardDescription>
+                  Definir dias de disponibilidade por produto
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+          <Link href='/admin/stock'>
+            <Card className='hover:shadow-md transition-shadow cursor-pointer border-green-200 bg-green-50/50'>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-lg flex items-center gap-2'>
+                  📊 Stock
+                </CardTitle>
+                <CardDescription>
+                  Controlar quantidades e repor stock
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+
         {/* QR Code do Menu */}
         <Card className='mb-8'>
           <CardHeader>

@@ -51,6 +51,27 @@ const DishSchema = new mongoose.Schema({
       validUntil: Date,
     },
   ],
+  schedule: {
+    monday: { type: Boolean, default: false },
+    tuesday: { type: Boolean, default: false },
+    wednesday: { type: Boolean, default: false },
+    thursday: { type: Boolean, default: false },
+    friday: { type: Boolean, default: false },
+    saturday: { type: Boolean, default: false },
+    sunday: { type: Boolean, default: false },
+  },
+  stock: {
+    enabled: { type: Boolean, default: false },
+    quantity: { type: Number, default: 0 },
+    reserved: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 3 },
+  },
+  orderSettings: {
+    minQuantity: { type: Number, default: 1 },
+    maxQuantity: { type: Number, default: 10 },
+    leadTimeHours: { type: Number, default: 0 },
+    acceptSameDay: { type: Boolean, default: true },
+  },
   available: Boolean,
   displayOrder: Number,
 });
@@ -758,10 +779,137 @@ const seedData = async () => {
     await Dish.create(dishes);
     console.log('✅ Products created:', dishes.length);
 
+    // Adicionar schedule e stock padrão a todos os produtos
+    console.log('📅 Setting default schedule and stock...');
+
+    // Salgados: disponíveis seg, qua, sex (dias de produção)
+    await Dish.updateMany(
+      { category: salgados._id },
+      {
+        $set: {
+          schedule: {
+            monday: true,
+            tuesday: false,
+            wednesday: true,
+            thursday: false,
+            friday: true,
+            saturday: false,
+            sunday: false,
+          },
+          stock: {
+            enabled: true,
+            quantity: 20,
+            reserved: 0,
+            lowStockThreshold: 5,
+          },
+          orderSettings: {
+            minQuantity: 1,
+            maxQuantity: 10,
+            leadTimeHours: 24,
+            acceptSameDay: false,
+          },
+        },
+      },
+    );
+
+    // Doces: disponíveis ter, qui, sáb
+    await Dish.updateMany(
+      { category: doces._id },
+      {
+        $set: {
+          schedule: {
+            monday: false,
+            tuesday: true,
+            wednesday: false,
+            thursday: true,
+            friday: false,
+            saturday: true,
+            sunday: false,
+          },
+          stock: {
+            enabled: true,
+            quantity: 15,
+            reserved: 0,
+            lowStockThreshold: 3,
+          },
+          orderSettings: {
+            minQuantity: 1,
+            maxQuantity: 20,
+            leadTimeHours: 24,
+            acceptSameDay: false,
+          },
+        },
+      },
+    );
+
+    // Fitness: disponíveis seg a sex
+    await Dish.updateMany(
+      { category: fitness._id },
+      {
+        $set: {
+          schedule: {
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: false,
+            sunday: false,
+          },
+          stock: {
+            enabled: true,
+            quantity: 10,
+            reserved: 0,
+            lowStockThreshold: 2,
+          },
+          orderSettings: {
+            minQuantity: 1,
+            maxQuantity: 5,
+            leadTimeHours: 48,
+            acceptSameDay: false,
+          },
+        },
+      },
+    );
+
+    // Acompanhamentos: disponíveis todos os dias úteis + sábado
+    await Dish.updateMany(
+      { category: acompanhamentos._id },
+      {
+        $set: {
+          schedule: {
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: true,
+            sunday: false,
+          },
+          stock: {
+            enabled: true,
+            quantity: 25,
+            reserved: 0,
+            lowStockThreshold: 5,
+          },
+          orderSettings: {
+            minQuantity: 1,
+            maxQuantity: 10,
+            leadTimeHours: 0,
+            acceptSameDay: true,
+          },
+        },
+      },
+    );
+
+    console.log('✅ Schedule and stock configured');
+
     console.log('\n🎉 Seed completed successfully!');
     console.log('📊 Summary:');
     console.log('   - Categories:', categories.length);
     console.log('   - Products:', dishes.length);
+    console.log('   - Schedule: configured per category');
+    console.log('   - Stock: enabled for all products');
     console.log('\n🚀 You can now start the server with: npm run dev');
   } catch (error) {
     console.error('❌ Seed error:', error);

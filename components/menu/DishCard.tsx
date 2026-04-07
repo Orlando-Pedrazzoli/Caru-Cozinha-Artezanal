@@ -12,9 +12,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils/cn';
-import { Leaf, Wheat, Dumbbell, UtensilsCrossed, ChefHat } from 'lucide-react';
+import {
+  Leaf,
+  Wheat,
+  Dumbbell,
+  UtensilsCrossed,
+  ChefHat,
+  ShoppingCart,
+  Plus,
+  Minus,
+} from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { DishDetailModal } from './DishDetailModal';
+import { AvailabilityBadge } from './AvailabilityBadge';
+import { useCart } from '@/components/cart/CartProvider';
 
 interface DishProps {
   dish: {
@@ -42,6 +53,25 @@ interface DishProps {
       weight?: string;
     }>;
     badges?: Array<{ type: string }>;
+    schedule?: {
+      monday?: boolean;
+      tuesday?: boolean;
+      wednesday?: boolean;
+      thursday?: boolean;
+      friday?: boolean;
+      saturday?: boolean;
+      sunday?: boolean;
+    };
+    stock?: {
+      enabled?: boolean;
+      quantity?: number;
+      reserved?: number;
+      lowStockThreshold?: number;
+    };
+    orderSettings?: {
+      maxQuantity?: number;
+    };
+    available: boolean;
   };
   onViewDetails?: (dish: any) => void;
 }
@@ -49,6 +79,14 @@ interface DishProps {
 export function DishCard({ dish, onViewDetails }: DishProps) {
   const locale = useLocale() as 'pt' | 'en';
   const [modalOpen, setModalOpen] = useState(false);
+  const {
+    addItem,
+    isInCart,
+    getItemQuantity,
+    updateQuantity,
+    removeItem,
+    setIsCartOpen,
+  } = useCart();
 
   const primaryImage =
     dish.images?.find(img => img.isPrimary) || dish.images?.[0];
@@ -76,11 +114,36 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
     return formatPrice(dish.price, locale === 'pt' ? 'pt-PT' : 'en-US');
   };
 
+  const isOutOfStock =
+    dish.stock?.enabled &&
+    (dish.stock.quantity || 0) - (dish.stock.reserved || 0) <= 0;
+  const maxQty = dish.orderSettings?.maxQuantity || 10;
+  const inCart = isInCart(dish._id);
+  const cartQty = getItemQuantity(dish._id);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isOutOfStock) return;
+    addItem({
+      dishId: dish._id,
+      name: dish.name,
+      flavor: dish.flavor,
+      price: dish.price,
+      weight: dish.weight,
+      image: primaryImage?.url,
+      schedule: dish.schedule,
+      maxQuantity: maxQty,
+    });
+  };
+
   return (
     <>
       <Card className='overflow-hidden hover:shadow-lg transition-all duration-300 card-hover flex flex-col h-full'>
         {primaryImage && (
-          <div className='relative aspect-square w-full bg-gray-100'>
+          <div
+            className='relative aspect-square w-full bg-gray-100 cursor-pointer'
+            onClick={handleViewDetails}
+          >
             {imageUrl === '/placeholder-food.jpg' ? (
               <div className='flex items-center justify-center h-full bg-gradient-to-br from-primary/10 to-primary/20'>
                 <span className='text-4xl'>🥧</span>
@@ -98,6 +161,14 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
                 }}
               />
             )}
+            <div className='absolute top-2 left-2'>
+              <AvailabilityBadge
+                schedule={dish.schedule}
+                stock={dish.stock}
+                available={dish.available}
+                compact
+              />
+            </div>
           </div>
         )}
 
@@ -123,7 +194,6 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
         </CardHeader>
 
         <CardContent className='pt-0 flex-1 space-y-3'>
-          {/* Dietary Info */}
           <div className='flex flex-wrap gap-1'>
             {dish.dietaryInfo?.fitness && (
               <Badge
@@ -160,15 +230,14 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
             )}
           </div>
 
-          {/* Short description */}
           <p className='text-xs text-muted-foreground line-clamp-2'>
             {dish.description[locale]}
           </p>
         </CardContent>
 
-        <CardFooter className='pt-0'>
+        <CardFooter className='pt-0 flex gap-2'>
           <Button
-            className='w-full'
+            className='flex-1'
             variant='outline'
             size='sm'
             onClick={handleViewDetails}
@@ -176,6 +245,48 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
             <ChefHat className='w-4 h-4 mr-2' />
             {locale === 'pt' ? 'Ver Detalhes' : 'View Details'}
           </Button>
+
+          {isOutOfStock ? (
+            <Button variant='outline' size='sm' disabled className='opacity-50'>
+              {locale === 'pt' ? 'Esgotado' : 'Sold out'}
+            </Button>
+          ) : inCart ? (
+            <div className='flex items-center gap-0.5 bg-primary rounded-md'>
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  if (cartQty <= 1) removeItem(dish._id);
+                  else updateQuantity(dish._id, cartQty - 1);
+                }}
+                className='p-2 text-primary-foreground hover:opacity-80 transition-opacity'
+              >
+                <Minus className='w-3.5 h-3.5' />
+              </button>
+              <span
+                className='text-sm font-bold text-primary-foreground min-w-[20px] text-center cursor-pointer'
+                onClick={e => {
+                  e.stopPropagation();
+                  setIsCartOpen(true);
+                }}
+              >
+                {cartQty}
+              </span>
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  updateQuantity(dish._id, cartQty + 1);
+                }}
+                disabled={cartQty >= maxQty}
+                className='p-2 text-primary-foreground hover:opacity-80 transition-opacity disabled:opacity-30'
+              >
+                <Plus className='w-3.5 h-3.5' />
+              </button>
+            </div>
+          ) : (
+            <Button size='sm' onClick={handleAddToCart}>
+              <ShoppingCart className='w-4 h-4' />
+            </Button>
+          )}
         </CardFooter>
       </Card>
 

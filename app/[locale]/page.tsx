@@ -6,17 +6,20 @@ import { Input } from '@/components/ui/input';
 import { DishCard } from '@/components/menu/DishCard';
 import { MenuFilters } from '@/components/menu/MenuFilters';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { CartProvider } from '@/components/cart/CartProvider';
+import { CartIcon } from '@/components/cart/CartIcon';
+import { CartDrawer } from '@/components/cart/CartDrawer';
+import { WhatsAppCheckout } from '@/components/checkout/WhatsAppCheckout';
 import { Search, Globe, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Fuse from 'fuse.js';
 
 interface Dish {
   _id: string;
   name: { pt: string; en: string };
   description: { pt: string; en: string };
   baseDescription?: { pt: string; en: string };
+  flavor?: { pt: string; en: string };
   category:
     | string
     | {
@@ -52,6 +55,24 @@ interface Dish {
   }>;
   badges?: Array<{ type: string }>;
   searchTags?: string[];
+  schedule?: {
+    monday?: boolean;
+    tuesday?: boolean;
+    wednesday?: boolean;
+    thursday?: boolean;
+    friday?: boolean;
+    saturday?: boolean;
+    sunday?: boolean;
+  };
+  stock?: {
+    enabled?: boolean;
+    quantity?: number;
+    reserved?: number;
+    lowStockThreshold?: number;
+  };
+  orderSettings?: {
+    maxQuantity?: number;
+  };
   available: boolean;
   displayOrder?: number;
 }
@@ -84,6 +105,23 @@ export default function MenuPage() {
     fitness: false,
   });
 
+  // Checkout state
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutData, setCheckoutData] = useState({
+    deliveryDate: '',
+    deliveryTime: '',
+    paymentMethod: 'on_delivery' as 'on_delivery' | 'mbway',
+  });
+
+  const handleCheckout = (data: {
+    deliveryDate: string;
+    deliveryTime: string;
+    paymentMethod: 'on_delivery' | 'mbway';
+  }) => {
+    setCheckoutData(data);
+    setCheckoutOpen(true);
+  };
+
   const contentTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,15 +148,6 @@ export default function MenuPage() {
       setLoading(false);
     }
   };
-
-  const fuse = useMemo(() => {
-    return new Fuse(dishes, {
-      keys: [`name.${locale}`, `description.${locale}`, 'searchTags'],
-      threshold: 0.3,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-    });
-  }, [dishes, locale]);
 
   const filteredDishes = useMemo(() => {
     let result = dishes;
@@ -149,13 +178,19 @@ export default function MenuPage() {
     }
 
     if (searchTerm) {
-      const searchResults = fuse.search(searchTerm);
-      const searchIds = searchResults.map(r => r.item._id);
-      result = result.filter(dish => searchIds.includes(dish._id));
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter(dish => {
+        const name = dish.name?.[locale]?.toLowerCase() || '';
+        const flavor = dish.flavor?.[locale]?.toLowerCase() || '';
+        const desc = dish.description?.[locale]?.toLowerCase() || '';
+        return (
+          name.includes(term) || flavor.includes(term) || desc.includes(term)
+        );
+      });
     }
 
     if (selectedCategory === 'all') {
-      result = result.sort((a, b) => {
+      result = [...result].sort((a, b) => {
         const aCategoryOrder =
           typeof a.category === 'object' && a.category !== null
             ? a.category.order || 0
@@ -171,13 +206,13 @@ export default function MenuPage() {
         return (a.displayOrder || 0) - (b.displayOrder || 0);
       });
     } else {
-      result = result.sort(
+      result = [...result].sort(
         (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
       );
     }
 
     return result;
-  }, [dishes, selectedCategory, filters, searchTerm, fuse]);
+  }, [dishes, selectedCategory, filters, searchTerm, locale]);
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -198,182 +233,194 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto'></div>
-          <p className='mt-4 text-muted-foreground'>{t('menu.loading')}</p>
+      <CartProvider>
+        <div className='flex items-center justify-center min-h-screen'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto'></div>
+            <p className='mt-4 text-muted-foreground'>{t('menu.loading')}</p>
+          </div>
         </div>
-      </div>
+      </CartProvider>
     );
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      {/* Header */}
-      <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='container mx-auto px-4 py-2'>
-          <div className='flex items-center justify-between'>
-            <Link href={`/${locale}`}>
-              <Image
-                src='/carulogo-nav.png'
-                alt='Caru - Cozinha Artesanal'
-                width={180}
-                height={64}
-                className='h-16 w-auto object-contain'
-                priority
-              />
-            </Link>
-            <div className='flex items-center gap-2'>
-              <ThemeToggle />
-              <Link href={locale === 'pt' ? '/en' : '/pt'}>
-                <Button variant='ghost' size='sm'>
-                  <Globe className='w-4 h-4 mr-2' />
-                  {locale === 'pt' ? 'EN' : 'PT'}
-                </Button>
+    <CartProvider>
+      <div className='min-h-screen bg-background'>
+        {/* Cart Drawer */}
+        <CartDrawer onCheckout={handleCheckout} />
+
+        {/* WhatsApp Checkout Modal */}
+        <WhatsAppCheckout
+          open={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          deliveryDate={checkoutData.deliveryDate}
+          deliveryTime={checkoutData.deliveryTime}
+          paymentMethod={checkoutData.paymentMethod}
+        />
+
+        {/* Header */}
+        <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='container mx-auto px-4 py-2'>
+            <div className='flex items-center justify-between'>
+              <Link href={`/${locale}`}>
+                <Image
+                  src='/carulogo-nav.png'
+                  alt='Caru - Cozinha Artesanal'
+                  width={180}
+                  height={64}
+                  className='h-16 w-auto object-contain'
+                  priority
+                />
               </Link>
-              <Button
-                variant='ghost'
-                size='sm'
-                className='lg:hidden'
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? (
-                  <X className='w-5 h-5' />
-                ) : (
-                  <Menu className='w-5 h-5' />
-                )}
-              </Button>
+              <div className='flex items-center gap-2'>
+                <CartIcon />
+                <Link href={locale === 'pt' ? '/en' : '/pt'}>
+                  <Button variant='ghost' size='sm'>
+                    <Globe className='w-4 h-4 mr-2' />
+                    {locale === 'pt' ? 'EN' : 'PT'}
+                  </Button>
+                </Link>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='lg:hidden h-10 w-10'
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? (
+                    <X className='w-6 h-6' />
+                  ) : (
+                    <Menu className='w-6 h-6' />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Search Bar */}
+        <div className='bg-background border-b'>
+          <div className='container mx-auto px-4 py-4'>
+            <div className='relative max-w-md mx-auto'>
+              <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4' />
+              <Input
+                type='search'
+                placeholder={t('menu.search')}
+                className='pl-10'
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Search Bar */}
-      <div className='bg-background border-b'>
-        <div className='container mx-auto px-4 py-4'>
-          <div className='relative max-w-md mx-auto'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4' />
-            <Input
-              type='search'
-              placeholder={t('menu.search')}
-              className='pl-10'
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Category Tabs with dynamic colors */}
-      <div className='sticky top-[80px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b'>
-        <div className='container mx-auto px-4'>
-          <div className='flex gap-2 overflow-x-auto py-4 scrollbar-hide'>
-            <Button
-              variant={selectedCategory === 'all' ? 'default' : 'ghost'}
-              size='sm'
-              onClick={() => handleCategoryChange('all')}
-              className='whitespace-nowrap'
-            >
-              {locale === 'pt' ? 'Todos' : 'All'}
-            </Button>
-            {categories.map(category => (
+        {/* Category Tabs with dynamic colors */}
+        <div className='sticky top-[80px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b'>
+          <div className='container mx-auto px-4'>
+            <div className='flex gap-2 overflow-x-auto py-4 scrollbar-hide'>
               <Button
-                key={category._id}
-                variant={
-                  selectedCategory === category._id ? 'default' : 'ghost'
-                }
+                variant={selectedCategory === 'all' ? 'default' : 'ghost'}
                 size='sm'
-                onClick={() => handleCategoryChange(category._id)}
+                onClick={() => handleCategoryChange('all')}
                 className='whitespace-nowrap'
-                style={
-                  selectedCategory === category._id && category.color
-                    ? {
-                        backgroundColor: category.color,
-                        color: 'white',
-                        borderColor: category.color,
-                      }
-                    : {}
-                }
               >
-                {category.name[locale]}
+                {locale === 'pt' ? 'Todos' : 'All'}
               </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div ref={contentTopRef} className='container mx-auto px-4 py-6'>
-        <div className='grid lg:grid-cols-4 gap-6'>
-          {/* Filters Sidebar */}
-          <div
-            className={`lg:col-span-1 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}
-          >
-            <div className='sticky top-[156px]'>
-              <MenuFilters filters={filters} onFilterChange={setFilters} />
+              {categories.map(category => (
+                <Button
+                  key={category._id}
+                  variant={
+                    selectedCategory === category._id ? 'default' : 'ghost'
+                  }
+                  size='sm'
+                  onClick={() => handleCategoryChange(category._id)}
+                  className='whitespace-nowrap'
+                  style={
+                    selectedCategory === category._id && category.color
+                      ? {
+                          backgroundColor: category.color,
+                          color: 'white',
+                          borderColor: category.color,
+                        }
+                      : {}
+                  }
+                >
+                  {category.name[locale]}
+                </Button>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Dishes Grid */}
-          <div className='lg:col-span-3'>
-            {error && (
-              <div className='bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-4'>
-                {error}
+        {/* Content */}
+        <div ref={contentTopRef} className='container mx-auto px-4 py-6'>
+          <div className='grid lg:grid-cols-4 gap-6'>
+            {/* Filters Sidebar */}
+            <div
+              className={`lg:col-span-1 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}
+            >
+              <div className='sticky top-[156px]'>
+                <MenuFilters filters={filters} onFilterChange={setFilters} />
               </div>
-            )}
+            </div>
 
-            {filteredDishes.length === 0 ? (
-              <div className='text-center py-12'>
-                <p className='text-muted-foreground'>{t('menu.noResults')}</p>
-              </div>
-            ) : (
-              <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {filteredDishes.map(dish => (
-                  <DishCard
-                    key={dish._id}
-                    dish={{
-                      ...dish,
-                      category: dish.category || undefined,
-                    }}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
-            )}
+            {/* Dishes Grid */}
+            <div className='lg:col-span-3'>
+              {error && (
+                <div className='bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-4'>
+                  {error}
+                </div>
+              )}
+
+              {filteredDishes.length === 0 ? (
+                <div className='text-center py-12'>
+                  <p className='text-muted-foreground'>{t('menu.noResults')}</p>
+                </div>
+              ) : (
+                <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                  {filteredDishes.map(dish => (
+                    <DishCard
+                      key={dish._id}
+                      dish={{
+                        ...dish,
+                        category: dish.category || undefined,
+                      }}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <footer className='border-t mt-12'>
-        <div className='container mx-auto px-4 py-8'>
-          <div className='flex flex-col items-center text-center'>
-            {/* Footer Logo */}
+        {/* FOOTER */}
+        <footer className='border-t mt-12'>
+          <div className='container mx-auto px-4 py-8 text-center'>
             <Image
               src='/carulogo-footer.png'
-              alt='Caru - Cozinha Artesanal'
+              alt='Caru'
               width={200}
               height={80}
-              className='h-20 w-auto object-contain mb-6'
+              className='mx-auto mb-6'
             />
 
-            {/* Copyright & Credits */}
-            <div className='text-sm text-muted-foreground space-y-1'>
-              <p>{t('footer.copyright')}</p>
-              <p>
-                {locale === 'pt' ? 'Desenvolvido por ' : 'Developed by '}
-                <a
-                  href='https://orlandopedrazzoli.com'
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-primary hover:underline'
-                >
-                  orlandopedrazzoli.com
-                </a>
-              </p>
-            </div>
+            <p className='text-sm text-muted-foreground'>
+              {t('footer.copyright')}
+            </p>
 
-            {/* Admin Link */}
+            <p className='text-sm text-muted-foreground'>
+              {locale === 'pt' ? 'Desenvolvido por ' : 'Developed by '}
+              <a
+                href='https://orlandopedrazzoli.com'
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-primary hover:underline'
+              >
+                orlandopedrazzoli.com
+              </a>
+            </p>
+
             <div className='mt-4'>
               <Link href='/admin'>
                 <Button variant='ghost' size='sm'>
@@ -382,8 +429,8 @@ export default function MenuPage() {
               </Link>
             </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </CartProvider>
   );
 }
