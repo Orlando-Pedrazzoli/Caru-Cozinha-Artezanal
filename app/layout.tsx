@@ -62,7 +62,8 @@ export const metadata: Metadata = {
       'Encomende salgados, doces e produtos fitness artesanais. Tortas, quiches, brigadeiros, brownies e muito mais.',
     images: [
       {
-        url: '/og-image.png',
+        url: `${siteUrl}/og-image.png`,
+        secureUrl: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: 'Caru - Cozinha Artesanal',
@@ -75,7 +76,14 @@ export const metadata: Metadata = {
     title: 'Caru - Cozinha Artesanal | Salgados, Doces e Fitness',
     description:
       'Encomende salgados, doces e produtos fitness artesanais. Entrega em Portugal.',
-    images: ['/og-image.png'],
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Caru - Cozinha Artesanal',
+      },
+    ],
   },
   robots: {
     index: true,
