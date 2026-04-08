@@ -1,25 +1,34 @@
 import { NextResponse } from 'next/server';
-import { login } from '@/lib/utils/auth';
+import {
+  encrypt,
+  validateCredentials,
+  getSessionCookieOptions,
+} from '@/lib/utils/auth';
 
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
-    
-    const result = await login(username, password);
-    
-    if (result.success) {
-      return NextResponse.json({ success: true });
+
+    const isValid = await validateCredentials(username, password);
+
+    if (!isValid) {
+      return NextResponse.json(
+        { success: false, error: 'Credenciais invalidas' },
+        { status: 401 },
+      );
     }
-    
-    return NextResponse.json(
-      { success: false, error: result.error },
-      { status: 401 }
-    );
+
+    const session = await encrypt({ user: username, admin: true });
+    const response = NextResponse.json({ success: true });
+
+    response.cookies.set('session', session, getSessionCookieOptions());
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
+      { success: false, error: 'Erro interno' },
+      { status: 500 },
     );
   }
 }
