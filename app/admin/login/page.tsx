@@ -5,13 +5,20 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from '@/components/ui/card';
+import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,54 +49,72 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Rana's Twist Admin</CardTitle>
-          <CardDescription>Entre com suas credenciais</CardDescription>
+    <div className='min-h-screen bg-gradient-to-br from-primary/10 to-background flex items-center justify-center p-4'>
+      <Card className='w-full max-w-md'>
+        <CardHeader className='space-y-1 text-center'>
+          <Image
+            src='/carulogo-nav.png'
+            alt='Caru - Cozinha Artesanal'
+            width={200}
+            height={80}
+            className='h-20 w-auto object-contain mx-auto mb-2'
+            priority
+          />
+          <CardDescription>Painel Administrativo</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Usuário</Label>
+          <form onSubmit={handleSubmit} className='space-y-4' autoComplete='on'>
+            <div className='space-y-2'>
+              <Label htmlFor='username'>Utilizador</Label>
               <Input
-                id="username"
-                type="text"
+                id='username'
+                name='username'
+                type='text'
+                autoComplete='username'
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                onChange={e => setUsername(e.target.value)}
+                placeholder='admin'
                 required
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loading}
-              />
+            <div className='space-y-2'>
+              <Label htmlFor='password'>Palavra-passe</Label>
+              <div className='relative'>
+                <Input
+                  id='password'
+                  name='password'
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete='current-password'
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className='pr-10'
+                />
+                <button
+                  type='button'
+                  onClick={() => setShowPassword(!showPassword)}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className='w-4 h-4' />
+                  ) : (
+                    <Eye className='w-4 h-4' />
+                  )}
+                </button>
+              </div>
             </div>
             {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+              <div className='bg-destructive/10 text-destructive text-sm p-3 rounded-md'>
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
+            <Button type='submit' className='w-full' disabled={loading}>
+              {loading ? 'A entrar...' : 'Entrar'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Credenciais padrão:</p>
-            <p className="font-mono">admin / ranas2024</p>
-          </div>
         </CardContent>
       </Card>
     </div>
