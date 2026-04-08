@@ -563,7 +563,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       {/* AGENDA SEMANAL */}
       {/* ============================================= */}
       <div className='space-y-3 p-4 border rounded-lg bg-blue-50/50 border-blue-200'>
-        <div className='flex items-center justify-between'>
+        <div className='space-y-2'>
           <div className='flex items-center gap-2'>
             <Calendar className='w-5 h-5 text-blue-600' />
             <Label className='text-base font-semibold'>Agenda Semanal</Label>
@@ -578,7 +578,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               type='button'
               variant='outline'
               size='sm'
-              className='text-xs h-7'
+              className='text-xs h-7 flex-1'
               onClick={toggleWeekdays}
             >
               Seg-Sex
@@ -587,7 +587,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               type='button'
               variant='outline'
               size='sm'
-              className='text-xs h-7'
+              className='text-xs h-7 flex-1'
               onClick={() => toggleAllDays(true)}
             >
               Todos
@@ -596,7 +596,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               type='button'
               variant='outline'
               size='sm'
-              className='text-xs h-7'
+              className='text-xs h-7 flex-1'
               onClick={() => toggleAllDays(false)}
             >
               Limpar

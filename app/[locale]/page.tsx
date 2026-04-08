@@ -216,15 +216,6 @@ export default function MenuPage() {
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    if (contentTopRef.current) {
-      const offset = 140;
-      const elementPosition = contentTopRef.current.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
   };
 
   const handleViewDetails = (dish: Dish) => {
@@ -308,7 +299,12 @@ export default function MenuPage() {
                 placeholder={t('menu.search')}
                 className='pl-10'
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  if (e.target.value.trim()) {
+                    setSelectedCategory('all');
+                  }
+                }}
               />
             </div>
           </div>
