@@ -7,7 +7,14 @@
   "menu": {
     "title": "Nosso Menu",
     "search": "Pesquisar produtos...",
-    "filters": "Filtros",
+    "filters": "Preferências e Restrições Alimentares",
+    "filtersClear": "Limpar",
+    "dietaryHeader": "Preferências e Restrições",
+    "portionTypeHeader": "Tipo de Porção",
+    "portionIndividual": "Individual",
+    "portionMeal": "Refeição",
+    "portionParty": "Festa",
+    "portionCombo": "Combo",
     "vegetarian": "Vegetariano",
     "vegan": "Vegano",
     "glutenFree": "Sem Glúten",
@@ -49,6 +56,7 @@
     "total": "Total",
     "deliveryDate": "Data de entrega",
     "deliveryTime": "Horário preferido",
+    "deliveryNotice": "Entregas: O serviço de entrega está restrito a uma área específica. Para entregas fora dessa zona, aplica-se taxa adicional e valor mínimo de encomenda, mediante consulta prévia.",
     "morning": "Manhã",
     "afternoon": "Tarde",
     "selectDate": "Selecione uma data",
@@ -140,6 +148,8 @@
   },
   "footer": {
     "copyright": "© 2026 Caru - Cozinha Artesanal. Todos os direitos reservados.",
-    "madeWith": "Desenvolvido por orlandopedrazzoli.com"
+    "madeWith": "Desenvolvido por orlandopedrazzoli.com",
+    "followUs": "Siga-nos",
+    "instagram": "Instagram"
   }
 }

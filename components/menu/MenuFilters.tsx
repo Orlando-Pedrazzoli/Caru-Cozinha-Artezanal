@@ -4,7 +4,17 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
-import { Leaf, Wheat, UtensilsCrossed, Dumbbell } from 'lucide-react';
+import {
+  Leaf,
+  Sprout,
+  Wheat,
+  UtensilsCrossed,
+  Dumbbell,
+  User,
+  UtensilsCrossed as MealIcon,
+  PartyPopper,
+  Package2,
+} from 'lucide-react';
 
 interface MenuFiltersProps {
   filters: {
@@ -13,6 +23,7 @@ interface MenuFiltersProps {
     glutenFree: boolean;
     dairyFree: boolean;
     fitness: boolean;
+    portionTypes: string[];
   };
   onFilterChange: (filters: any) => void;
 }
@@ -23,10 +34,15 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
   const toggleDietaryFilter = (
     key: 'vegetarian' | 'vegan' | 'glutenFree' | 'dairyFree' | 'fitness',
   ) => {
-    onFilterChange({
-      ...filters,
-      [key]: !filters[key],
-    });
+    onFilterChange({ ...filters, [key]: !filters[key] });
+  };
+
+  const togglePortionType = (type: string) => {
+    const current = filters.portionTypes || [];
+    const next = current.includes(type)
+      ? current.filter(t => t !== type)
+      : [...current, type];
+    onFilterChange({ ...filters, portionTypes: next });
   };
 
   const clearFilters = () => {
@@ -36,6 +52,7 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
       glutenFree: false,
       dairyFree: false,
       fitness: false,
+      portionTypes: [],
     });
   };
 
@@ -44,26 +61,91 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
     (filters.vegan ? 1 : 0) +
     (filters.glutenFree ? 1 : 0) +
     (filters.dairyFree ? 1 : 0) +
-    (filters.fitness ? 1 : 0);
+    (filters.fitness ? 1 : 0) +
+    (filters.portionTypes?.length || 0);
 
   return (
-    <div className='space-y-4 p-4 bg-card rounded-lg border'>
-      <div className='flex items-center justify-between'>
-        <Label className='text-base font-semibold'>{t('filters')}</Label>
+    <div className='space-y-5 p-4 bg-card rounded-lg border'>
+      {/* Header */}
+      <div className='flex items-center justify-between gap-2'>
+        <Label className='text-base font-semibold leading-tight'>
+          {t('filters')}
+        </Label>
         {activeFiltersCount > 0 && (
           <Button
             variant='ghost'
             size='sm'
             onClick={clearFilters}
-            className='text-xs'
+            className='text-xs shrink-0'
           >
-            Clear ({activeFiltersCount})
+            {t('filtersClear')} ({activeFiltersCount})
           </Button>
         )}
       </div>
 
-      {/* Dietary Filters */}
+      {/* Portion Types */}
       <div className='space-y-2'>
+        <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+          {t('portionTypeHeader')}
+        </Label>
+        <div className='flex flex-col gap-2'>
+          <Button
+            variant={
+              filters.portionTypes?.includes('individual')
+                ? 'default'
+                : 'outline'
+            }
+            size='sm'
+            onClick={() => togglePortionType('individual')}
+            className='justify-start gap-2'
+          >
+            <User className='w-4 h-4' />
+            {t('portionIndividual')}
+          </Button>
+
+          <Button
+            variant={
+              filters.portionTypes?.includes('refeicao') ? 'default' : 'outline'
+            }
+            size='sm'
+            onClick={() => togglePortionType('refeicao')}
+            className='justify-start gap-2'
+          >
+            <MealIcon className='w-4 h-4' />
+            {t('portionMeal')}
+          </Button>
+
+          <Button
+            variant={
+              filters.portionTypes?.includes('festa') ? 'default' : 'outline'
+            }
+            size='sm'
+            onClick={() => togglePortionType('festa')}
+            className='justify-start gap-2'
+          >
+            <PartyPopper className='w-4 h-4' />
+            {t('portionParty')}
+          </Button>
+
+          <Button
+            variant={
+              filters.portionTypes?.includes('combo') ? 'default' : 'outline'
+            }
+            size='sm'
+            onClick={() => togglePortionType('combo')}
+            className='justify-start gap-2'
+          >
+            <Package2 className='w-4 h-4' />
+            {t('portionCombo')}
+          </Button>
+        </div>
+      </div>
+
+      {/* Dietary */}
+      <div className='space-y-2'>
+        <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+          {t('dietaryHeader')}
+        </Label>
         <div className='flex flex-col gap-2'>
           <Button
             variant={filters.fitness ? 'default' : 'outline'}
@@ -91,7 +173,7 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
             onClick={() => toggleDietaryFilter('vegan')}
             className='justify-start gap-2'
           >
-            <Leaf className='w-4 h-4' />
+            <Sprout className='w-4 h-4' />
             {t('vegan')}
           </Button>
 

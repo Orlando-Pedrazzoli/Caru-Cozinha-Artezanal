@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils/cn';
 import {
   Leaf,
+  Sprout,
   Wheat,
   Dumbbell,
   UtensilsCrossed,
@@ -211,8 +212,8 @@ export function DishCard({ dish, onViewDetails }: DishProps) {
               </Badge>
             )}
             {dish.dietaryInfo?.vegan && (
-              <Badge variant='success' className='gap-1 text-xs'>
-                <Leaf className='w-3 h-3' />
+              <Badge className='gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white border-transparent'>
+                <Sprout className='w-3 h-3' />
                 {locale === 'pt' ? 'Vegano' : 'Vegan'}
               </Badge>
             )}

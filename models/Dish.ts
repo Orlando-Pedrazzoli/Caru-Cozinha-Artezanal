@@ -52,6 +52,12 @@ const DishSchema = new mongoose.Schema(
       pt: { type: String, default: '' },
       en: { type: String, default: '' },
     },
+    // Tipos de porção — filtros no menu público
+    portionTypes: {
+      type: [String],
+      enum: ['individual', 'refeicao', 'festa', 'combo'],
+      default: [],
+    },
     portionSizes: [
       {
         label: {
@@ -127,6 +133,7 @@ const DishSchema = new mongoose.Schema(
 );
 
 DishSchema.index({ category: 1, displayOrder: 1 });
+DishSchema.index({ portionTypes: 1 });
 DishSchema.index({
   'name.pt': 'text',
   'name.en': 'text',

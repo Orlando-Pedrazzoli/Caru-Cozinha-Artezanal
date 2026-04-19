@@ -66,6 +66,7 @@ interface FormData {
     fitness: boolean;
   };
   flavor: { pt: string; en: string };
+  portionTypes: string[];
   portionSizes: PortionSize[];
   schedule: ScheduleData;
   stock: StockData;
@@ -87,6 +88,13 @@ const DAYS = [
   { key: 'friday', label: 'Sexta' },
   { key: 'saturday', label: 'Sábado' },
   { key: 'sunday', label: 'Domingo' },
+] as const;
+
+const PORTION_TYPE_OPTIONS = [
+  { key: 'individual', label: 'Individual' },
+  { key: 'refeicao', label: 'Refeição' },
+  { key: 'festa', label: 'Festa' },
+  { key: 'combo', label: 'Combo' },
 ] as const;
 
 export function DishForm({ dish, onSubmit }: DishFormProps) {
@@ -111,6 +119,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       fitness: false,
     },
     flavor: { pt: '', en: '' },
+    portionTypes: [],
     portionSizes: [],
     schedule: {
       monday: false,
@@ -156,6 +165,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
           fitness: dish.dietaryInfo?.fitness || false,
         },
         flavor: dish.flavor || { pt: '', en: '' },
+        portionTypes: dish.portionTypes || [],
         portionSizes: (dish.portionSizes || []).map((p: any) => ({
           label: p.label || { pt: '', en: '' },
           price: p.price != null ? p.price : null,
@@ -210,6 +220,15 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
     setFormData(prev => ({
       ...prev,
       [parent]: { ...(prev as any)[parent], [field]: value },
+    }));
+  };
+
+  const togglePortionType = (key: string) => {
+    setFormData(prev => ({
+      ...prev,
+      portionTypes: prev.portionTypes.includes(key)
+        ? prev.portionTypes.filter(t => t !== key)
+        : [...prev.portionTypes, key],
     }));
   };
 
@@ -363,6 +382,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
         images: formData.images,
         dietaryInfo: formData.dietaryInfo,
         flavor: formData.flavor,
+        portionTypes: formData.portionTypes,
         portionSizes: formData.portionSizes
           .filter(p => p.label.pt.trim() !== '')
           .map(p => ({
@@ -560,7 +580,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       </div>
 
       {/* ============================================= */}
-      {/* AGENDA SEMANAL */}
+      {/* AGENDA SEMANAL                                 */}
       {/* ============================================= */}
       <div className='space-y-3 p-4 border rounded-lg bg-blue-50/50 border-blue-200'>
         <div className='space-y-2'>
@@ -631,7 +651,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       </div>
 
       {/* ============================================= */}
-      {/* STOCK */}
+      {/* STOCK                                          */}
       {/* ============================================= */}
       <div
         className={`space-y-3 p-4 border rounded-lg ${
@@ -717,7 +737,7 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
       </div>
 
       {/* ============================================= */}
-      {/* CONFIGURAÇÕES DE ENCOMENDA */}
+      {/* CONFIGURAÇÕES DE ENCOMENDA                     */}
       {/* ============================================= */}
       <div className='space-y-3 p-4 border rounded-lg bg-amber-50/50 border-amber-200'>
         <div className='flex items-center gap-2'>
@@ -830,6 +850,10 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               }
             }}
           />
+          <p className='text-xs text-muted-foreground'>
+            Valor manual. Usa o drag-and-drop na tabela para reordenar
+            visualmente.
+          </p>
         </div>
       </div>
 
@@ -909,6 +933,40 @@ export function DishForm({ dish, onSubmit }: DishFormProps) {
               <span className='text-sm'>{label}</span>
             </label>
           ))}
+        </div>
+      </div>
+
+      {/* ============================================= */}
+      {/* TIPO DE PORÇÃO                                 */}
+      {/* ============================================= */}
+      <div className='space-y-2'>
+        <Label>Tipo de Porção</Label>
+        <p className='text-xs text-muted-foreground'>
+          Selecione os tipos de porção aplicáveis (pode marcar mais de um).
+          Usado para filtrar no menu.
+        </p>
+        <div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
+          {PORTION_TYPE_OPTIONS.map(({ key, label }) => {
+            const checked = formData.portionTypes.includes(key);
+            return (
+              <label
+                key={key}
+                className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
+                  checked
+                    ? 'border-primary bg-primary/5'
+                    : 'border-input hover:border-primary/50'
+                }`}
+              >
+                <input
+                  type='checkbox'
+                  checked={checked}
+                  onChange={() => togglePortionType(key)}
+                  className='rounded'
+                />
+                <span className='text-sm'>{label}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 

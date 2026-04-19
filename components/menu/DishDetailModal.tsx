@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/utils/cn';
 import {
   Leaf,
+  Sprout,
   Wheat,
   Dumbbell,
   UtensilsCrossed,
@@ -122,7 +123,6 @@ export function DishDetailModal({ dish, open, onClose }: DishDetailModalProps) {
         onClick={onClose}
       />
 
-      {/* Modal */}
       {/* Modal */}
       <div className='fixed inset-x-3 bottom-3 z-50 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-[calc(100%-2rem)]'>
         <div
@@ -261,8 +261,8 @@ export function DishDetailModal({ dish, open, onClose }: DishDetailModalProps) {
                 </Badge>
               )}
               {dish.dietaryInfo?.vegan && (
-                <Badge variant='success' className='gap-1 text-xs'>
-                  <Leaf className='w-3 h-3' />
+                <Badge className='gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white border-transparent'>
+                  <Sprout className='w-3 h-3' />
                   {locale === 'pt' ? 'Vegano' : 'Vegan'}
                 </Badge>
               )}

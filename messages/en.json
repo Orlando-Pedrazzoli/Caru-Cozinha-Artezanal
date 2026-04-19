@@ -7,7 +7,14 @@
   "menu": {
     "title": "Our Menu",
     "search": "Search products...",
-    "filters": "Filters",
+    "filters": "Dietary Preferences & Restrictions",
+    "filtersClear": "Clear",
+    "dietaryHeader": "Preferences & Restrictions",
+    "portionTypeHeader": "Portion Type",
+    "portionIndividual": "Individual",
+    "portionMeal": "Meal",
+    "portionParty": "Party",
+    "portionCombo": "Combo",
     "vegetarian": "Vegetarian",
     "vegan": "Vegan",
     "glutenFree": "Gluten Free",
@@ -49,6 +56,7 @@
     "total": "Total",
     "deliveryDate": "Delivery date",
     "deliveryTime": "Preferred time",
+    "deliveryNotice": "Deliveries: Our delivery service is restricted to a specific area. For deliveries outside this zone, an additional fee and minimum order value apply, subject to prior consultation.",
     "morning": "Morning",
     "afternoon": "Afternoon",
     "selectDate": "Select a date",
@@ -140,6 +148,8 @@
   },
   "footer": {
     "copyright": "© 2026 Caru - Artisan Kitchen. All rights reserved.",
-    "madeWith": "Developed by orlandopedrazzoli.com"
+    "madeWith": "Developed by orlandopedrazzoli.com",
+    "followUs": "Follow us",
+    "instagram": "Instagram"
   }
 }
