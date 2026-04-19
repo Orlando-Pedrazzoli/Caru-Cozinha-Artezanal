@@ -66,12 +66,9 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
 
   return (
     <div className='space-y-5 p-4 bg-card rounded-lg border'>
-      {/* Header */}
-      <div className='flex items-center justify-between gap-2'>
-        <Label className='text-base font-semibold leading-tight'>
-          {t('filters')}
-        </Label>
-        {activeFiltersCount > 0 && (
+      {/* Clear button — só aparece quando há filtros ativos */}
+      {activeFiltersCount > 0 && (
+        <div className='flex justify-end'>
           <Button
             variant='ghost'
             size='sm'
@@ -80,8 +77,8 @@ export function MenuFilters({ filters, onFilterChange }: MenuFiltersProps) {
           >
             {t('filtersClear')} ({activeFiltersCount})
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Portion Types */}
       <div className='space-y-2'>
