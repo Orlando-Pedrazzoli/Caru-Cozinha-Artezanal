@@ -1,223 +1,241 @@
-# Caru - Cozinha Artesanal | Menu Digital e Sistema de Encomendas
+# Caru - Artisan Kitchen | Digital Menu and Order Management System
 
-Menu digital com sistema completo de encomendas, gestao de stock e agenda semanal para a Caru - Cozinha Artesanal. Desenvolvido com Next.js 15, React 19, MongoDB e Tailwind CSS.
+Digital menu with a complete ordering system, stock management, weekly scheduling, and drag-and-drop product sorting. Built with Next.js 15, React 19, MongoDB, and Tailwind CSS for Caru - Artisan Kitchen.
 
-Producao: https://www.caru.pt
-
----
-
-## Funcionalidades
-
-### Menu Digital (Cliente)
-
-- Interface mobile-first responsiva
-- Pesquisa em tempo real por nome, sabor e descricao
-- Filtros dieteticos: Fitness, Vegetariano, Vegano, Sem Gluten, Sem Lactose
-- Categorias com cores dinamicas: Salgados, Doces, Fitness, Acompanhamentos
-- Badge de disponibilidade: "Disponivel hoje", "Sob encomenda", "Esgotado", "Ultimas unidades"
-- Suporte bilingue: Portugues e Ingles
-
-### Sistema de Encomendas
-
-- Carrinho de compras com persistencia em localStorage
-- Sidebar do carrinho abre automaticamente ao adicionar produto e fecha quando vazio
-- Selecao de data: botao "Hoje" (quando disponivel) ou date picker para outra data
-- Selecao de horario: Manha ou Tarde
-- Metodo de pagamento: Pagamento na entrega ou MBWay direto
-- Checkout via WhatsApp com mensagem pre-formatada
-- Numero de encomenda auto-gerado (CARU-YYYYMMDD-001)
-- Reserva automatica de stock ao criar encomenda
-
-### Painel Administrativo
-
-- Dashboard com navegacao rapida para Encomendas, Agenda e Stock
-- Gestao de encomendas com filtros por status (Pendente, Confirmada, A preparar, Pronta, Entregue, Cancelada)
-- Modal de detalhes com link direto para WhatsApp do cliente
-- Marcacao de pagamento com um clique
-- Polling automatico a cada 30 segundos para novas encomendas
-- Agenda semanal: grid visual de produtos por dias da semana com toggles rapidos
-- Batch update de agenda com botoes "Seg-Sex", "Todos", "Limpar"
-- Gestao de stock: tabela com alertas de stock baixo e esgotado
-- Reposicao inline com historico de movimentos por produto
-- CRUD completo de produtos com upload de imagens via Cloudinary
-- Formulario com campos de schedule (7 dias), stock e configuracoes de encomenda
-- Sistema de QR Code para menu e avaliacoes Google
-
-### Stock e Disponibilidade
-
-- Operacoes atomicas no MongoDB para evitar overselling
-- Fluxo: reserva ao encomendar, baixa definitiva ao confirmar, devolucao ao cancelar
-- Log de auditoria completo (StockLog) com rastreio por encomenda
-- Alertas visuais de stock baixo e esgotado no admin e no menu do cliente
+Production: https://www.caru.pt
 
 ---
 
-## Stack Tecnica
+## Features
 
-- **Framework**: Next.js 15 (App Router)
-- **Frontend**: React 19, Tailwind CSS 3, Radix UI, Lucide Icons
-- **Backend**: Next.js API Routes, Mongoose ODM
-- **Base de dados**: MongoDB Atlas
-- **Imagens**: Cloudinary
-- **Autenticacao admin**: JWT (jose) + bcryptjs
-- **i18n**: next-intl (PT/EN)
-- **Deploy**: Vercel
-- **Dominio**: Hostinger (caru.pt)
+### Digital Menu (Customer)
+
+- Mobile-first responsive interface with dark mode
+- Real-time search by name, flavor, and description
+- Portion Type filters: Individual, Meal, Party, Combo
+- Dietary Preferences & Restrictions filters: Fitness, Vegetarian, Vegan, Gluten Free, Dairy Free
+- Distinct iconography and colors for Vegetarian (Leaf) and Vegan (Sprout)
+- Dynamic category colors configurable in the admin panel
+- Availability badges: "Available today", "Pre-order", "Sold out", "Last units"
+- Bilingual support: Portuguese and English with toggle in the navbar
+- Instagram link in the footer
+- Dismissible delivery area notice inside the cart
+
+### Order System
+
+- Shopping cart persisted in localStorage
+- Cart drawer optimized for mobile (100dvh) with sticky footer
+- Date selection: "Today" button (when available) or custom calendar with valid days only
+- Time slots: Morning or Afternoon
+- Payment methods: Pay on delivery or MBWay
+- WhatsApp checkout with pre-formatted message
+- Auto-generated order number (CARU-YYYYMMDD-001)
+- Automatic stock reservation on order creation
+- Intersection of available days across all products in the cart
+
+### Admin Panel
+
+- Dashboard with quick navigation to Orders, Schedule, Stock, and QR Codes
+- Order management with status filters
+- Order detail modal with direct WhatsApp link to the customer
+- One-click payment confirmation
+- Automatic polling every 30 seconds for new orders
+- Weekly schedule: visual product-by-day grid with quick toggles
+- Batch schedule updates with "Mon-Fri", "All", "Clear" shortcuts
+- Stock management: table with low-stock and out-of-stock alerts
+- Inline restocking with per-product movement history
+- Full product CRUD with image upload via Cloudinary
+- Drag-and-drop to reorder products in the menu (@dnd-kit)
+- Order persistence via dedicated /api/dishes/reorder endpoint
+- Form with schedule (7 days), stock, portion type, and order settings fields
+- QR Code system for menu and Google reviews
+
+### Stock and Availability
+
+- Atomic MongoDB operations to prevent overselling
+- Flow: reserve on order, confirm on order confirmation, release on cancellation
+- Complete audit log (StockLog) with per-order traceability
+- Visual low-stock and out-of-stock alerts in both admin and customer menu
 
 ---
 
-## Pre-requisitos
+## Tech Stack
+
+- Framework: Next.js 15 (App Router)
+- Frontend: React 19, Tailwind CSS 3, Radix UI, Lucide Icons
+- Drag-and-drop: @dnd-kit/core, @dnd-kit/sortable
+- Backend: Next.js API Routes, Mongoose ODM
+- Database: MongoDB Atlas
+- Images: Cloudinary
+- Admin authentication: JWT (jose) + bcryptjs
+- i18n: next-intl (PT/EN)
+- Deployment: Vercel
+- Domain: Hostinger (caru.pt)
+
+---
+
+## Prerequisites
 
 - Node.js 18+
-- Conta MongoDB Atlas
-- Conta Cloudinary
+- MongoDB Atlas account
+- Cloudinary account
 
 ---
 
-## Instalacao
+## Installation
 
-1. Clonar o repositorio
+1. Clone the repository
 
 ```bash
 git clone https://github.com/Orlando-Pedrazzoli/Caru-Cozinha-Artezanal.git
 cd Caru-Cozinha-Artezanal
 ```
 
-2. Instalar dependencias
+2. Install dependencies
 
 ```bash
 npm install
 ```
 
-3. Configurar variaveis de ambiente
+3. Configure environment variables
 
-Criar ficheiro `.env.local` na raiz do projeto:
+Create a `.env.local` file in the project root:
 
 ```env
 # MongoDB
 MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/caru-db
 
 # Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=seu_cloud_name
-CLOUDINARY_API_KEY=sua_api_key
-CLOUDINARY_API_SECRET=seu_api_secret
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
 # Admin
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=senha_segura
+ADMIN_PASSWORD=secure_password
 
 # JWT
-JWT_SECRET=string_aleatoria_segura_minimo_32_caracteres
+JWT_SECRET=random_secure_string_minimum_32_characters
 
 # App URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# WhatsApp e MBWay (numero da Carol)
+# WhatsApp and MBWay (Carol's number)
 NEXT_PUBLIC_WHATSAPP_NUMBER=351932040087
 NEXT_PUBLIC_MBWAY_NUMBER=351932040087
 ```
 
-4. Popular a base de dados
+4. Seed the database
 
 ```bash
 npm run seed
 ```
 
-5. Iniciar o servidor de desenvolvimento
+5. (Optional) Standardize category colors
+
+```bash
+node scripts/update-category-colors.js
+```
+
+6. Start the development server
 
 ```bash
 npm run dev
 ```
 
-6. Aceder a aplicacao
+7. Access the application
 
-- Menu: http://localhost:3000/pt
+- Menu: http://localhost:3000/en
 - Admin: http://localhost:3000/admin
 
 ---
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 Caru-Cozinha-Artezanal/
 |
 |-- app/
-|   |-- [locale]/               # Menu digital com i18n (PT/EN)
-|   |   |-- page.tsx            # Pagina principal do menu
-|   |   |-- layout.tsx          # Layout com next-intl provider
+|   |-- [locale]/               # Digital menu with i18n (PT/EN)
+|   |   |-- page.tsx            # Main menu page
+|   |   |-- layout.tsx          # Layout with next-intl provider
 |   |-- admin/
-|   |   |-- dashboard/          # Dashboard principal
-|   |   |-- orders/             # Gestao de encomendas
-|   |   |-- schedule/           # Agenda semanal
-|   |   |-- stock/              # Gestao de stock
-|   |   |-- dishes/             # CRUD de produtos (new/edit)
-|   |   |-- qrcode/             # Gestao de QR codes
-|   |   |-- login/              # Login admin
+|   |   |-- dashboard/          # Main dashboard
+|   |   |-- orders/             # Order management
+|   |   |-- schedule/           # Weekly schedule
+|   |   |-- stock/              # Stock management
+|   |   |-- dishes/             # Product CRUD (new/edit)
+|   |   |-- qrcode/             # QR code management
+|   |   |-- qrcode-review/      # QR code for Google reviews
+|   |   |-- login/              # Admin login
 |   |-- api/
-|   |   |-- menu/               # GET menu publico
-|   |   |-- orders/             # CRUD encomendas
-|   |   |-- orders/[id]/        # Operacoes por encomenda
-|   |   |-- stock/              # Dashboard e restock
-|   |   |-- stock/[dishId]/     # Stock individual + logs
-|   |   |-- schedule/           # Agenda semanal (GET/PATCH/PUT)
-|   |   |-- checkout/whatsapp/  # Criar encomenda + gerar link WhatsApp
-|   |   |-- dishes/             # CRUD produtos (admin)
-|   |   |-- categories/         # Listar categorias
-|   |   |-- upload/             # Upload Cloudinary
+|   |   |-- menu/               # GET public menu
+|   |   |-- orders/             # Orders CRUD
+|   |   |-- orders/[id]/        # Per-order operations
+|   |   |-- stock/              # Stock dashboard and restock
+|   |   |-- stock/[dishId]/     # Per-product stock and logs
+|   |   |-- schedule/           # Weekly schedule (GET/PATCH/PUT)
+|   |   |-- checkout/whatsapp/  # Create order and generate WhatsApp link
+|   |   |-- dishes/             # Product CRUD (admin)
+|   |   |-- dishes/reorder/     # PATCH for drag-and-drop reordering
+|   |   |-- categories/         # List active categories
+|   |   |-- upload/             # Cloudinary upload
 |   |   |-- auth/               # Login/logout/check
-|   |   |-- qrcode/             # Gerar QR codes
+|   |   |-- qrcode/             # Generate QR codes
 |   |-- layout.tsx              # Root layout
-|   |-- global.css              # Estilos globais + paleta Caru
+|   |-- global.css              # Global styles + Caru palette
 |
 |-- components/
 |   |-- menu/
-|   |   |-- DishCard.tsx        # Card do produto com carrinho e disponibilidade
-|   |   |-- DishDetailModal.tsx # Modal de detalhes do produto
-|   |   |-- MenuFilters.tsx     # Filtros dieteticos
-|   |   |-- AvailabilityBadge.tsx # Badge de disponibilidade por dia/stock
+|   |   |-- DishCard.tsx            # Product card with cart and availability
+|   |   |-- DishDetailModal.tsx     # Product detail modal
+|   |   |-- MenuFilters.tsx         # Portion type and dietary filters
+|   |   |-- AvailabilityBadge.tsx   # Day/stock availability badge
 |   |-- cart/
-|   |   |-- CartProvider.tsx    # Context global do carrinho
-|   |   |-- CartIcon.tsx        # Icone com badge no header
-|   |   |-- CartDrawer.tsx      # Sidebar do carrinho com checkout
+|   |   |-- CartProvider.tsx        # Global cart context
+|   |   |-- CartIcon.tsx            # Header icon with counter badge
+|   |   |-- CartDrawer.tsx          # Cart sidebar with checkout and delivery notice
 |   |-- checkout/
-|   |   |-- WhatsAppCheckout.tsx # Formulario e envio via WhatsApp
+|   |   |-- WhatsAppCheckout.tsx    # Form and WhatsApp redirection
 |   |-- admin/
-|   |   |-- DishForm.tsx        # Formulario completo (schedule/stock/order settings)
-|   |   |-- DishTable.tsx       # Tabela de produtos
-|   |-- ui/                     # Componentes base (Button, Input, Card, Dialog, Badge, Label)
-|   |-- providers/              # ThemeProvider
+|   |   |-- DishForm.tsx            # Full product form (schedule/stock/portionTypes)
+|   |   |-- DishTable.tsx           # Product table with drag-and-drop
+|   |-- ui/                         # Base components (Button, Input, Card, Dialog, Badge, Label)
+|   |-- providers/                  # ThemeProvider
 |
 |-- models/
-|   |-- Dish.ts                 # Produto (schedule, stock, orderSettings)
-|   |-- Category.ts             # Categoria (cor, ordem)
-|   |-- Order.ts                # Encomenda (items, status, pagamento)
-|   |-- StockLog.ts             # Auditoria de movimentos de stock
-|   |-- Table.ts                # Mesas e QR codes
+|   |-- Dish.ts                 # Product (schedule, stock, portionTypes, orderSettings)
+|   |-- Category.ts             # Category (color, order)
+|   |-- Order.ts                # Order (items, status, payment)
+|   |-- StockLog.ts             # Stock movement audit
+|   |-- Table.ts                # Tables and QR codes
 |
 |-- lib/
-|   |-- db/mongoose.ts          # Conexao MongoDB com cache
-|   |-- i18n/config.ts          # Configuracao de idiomas
+|   |-- db/mongoose.ts          # MongoDB connection with cache and dead connection recovery
+|   |-- i18n/config.ts          # Language configuration
 |   |-- utils/
 |   |   |-- cn.ts               # Tailwind merge + formatPrice
 |   |   |-- auth.ts             # JWT encrypt/decrypt + session
-|   |   |-- stock.ts            # Operacoes atomicas de stock
-|   |   |-- whatsapp.ts         # Formatacao de mensagem WhatsApp
+|   |   |-- stock.ts            # Atomic stock operations
+|   |   |-- whatsapp.ts         # WhatsApp message formatting
 |
 |-- messages/
-|   |-- pt.json                 # Traducoes Portugues
-|   |-- en.json                 # Traducoes Ingles
+|   |-- pt.json                 # Portuguese translations
+|   |-- en.json                 # English translations
 |
 |-- scripts/
-|   |-- seed.js                 # Popular BD com 4 categorias + 41 produtos
+|   |-- seed.js                         # Seed DB with categories and products
+|   |-- update-category-colors.js       # Standardize category colors
+|   |-- fix-orphaned-dishes.js          # Fix products without category
 |
 |-- public/                     # Logos, favicons, manifest
 ```
 
 ---
 
-## Modelo de Dados
+## Data Model
 
-### Dish (Produto)
+### Dish (Product)
 
 ```javascript
 {
@@ -232,17 +250,18 @@ Caru-Cozinha-Artezanal/
   images: [{ url, cloudinaryId, isPrimary }],
   dietaryInfo: { vegetarian, vegan, glutenFree, dairyFree, fitness },
   allergens: [String],
+  portionTypes: [String],       // enum: individual, refeicao, festa, combo
   portionSizes: [{ label: { pt, en }, price, weight }],
   badges: [{ type: 'popular' | 'novo' | 'artesanal' | 'sazonal' }],
   schedule: { monday, tuesday, wednesday, thursday, friday, saturday, sunday },
   stock: { enabled, quantity, reserved, lowStockThreshold },
   orderSettings: { minQuantity, maxQuantity, leadTimeHours, acceptSameDay },
   available: Boolean,
-  displayOrder: Number
+  displayOrder: Number          // used by admin drag-and-drop
 }
 ```
 
-### Order (Encomenda)
+### Order
 
 ```javascript
 {
@@ -263,19 +282,19 @@ Caru-Cozinha-Artezanal/
 }
 ```
 
-### Category (Categoria)
+### Category
 
 ```javascript
 {
   name: { pt, en },
   slug: String,
-  color: String,                // hex color para UI
+  color: String,                // hex color for UI
   order: Number,
   active: Boolean
 }
 ```
 
-### StockLog (Auditoria)
+### StockLog (Audit)
 
 ```javascript
 {
@@ -293,50 +312,51 @@ Caru-Cozinha-Artezanal/
 
 ## API Routes
 
-| Metodo              | Rota                   | Descricao                          | Auth  |
-| ------------------- | ---------------------- | ---------------------------------- | ----- |
-| GET                 | /api/menu              | Menu publico (dishes + categories) | Nao   |
-| GET                 | /api/categories        | Listar categorias ativas           | Nao   |
-| GET                 | /api/orders            | Listar encomendas (filtros)        | Admin |
-| POST                | /api/orders            | Criar encomenda                    | Nao   |
-| GET                 | /api/orders/[id]       | Detalhes de encomenda              | Nao   |
-| PATCH               | /api/orders/[id]       | Atualizar status/pagamento         | Admin |
-| DELETE              | /api/orders/[id]       | Cancelar encomenda                 | Admin |
-| GET                 | /api/stock             | Dashboard de stock                 | Admin |
-| PATCH               | /api/stock             | Restock manual                     | Admin |
-| GET                 | /api/stock/[dishId]    | Stock + logs de um produto         | Admin |
-| GET                 | /api/schedule          | Agenda de todos os produtos        | Nao   |
-| PATCH               | /api/schedule          | Atualizar agenda de um produto     | Admin |
-| PUT                 | /api/schedule          | Batch update de agenda             | Admin |
-| POST                | /api/checkout/whatsapp | Criar encomenda + link WhatsApp    | Nao   |
-| GET/POST/PUT/DELETE | /api/dishes            | CRUD de produtos                   | Admin |
-| POST                | /api/upload            | Upload de imagem Cloudinary        | Admin |
-| POST                | /api/auth/login        | Login admin                        | Nao   |
-| POST                | /api/auth/logout       | Logout admin                       | Nao   |
-| GET                 | /api/auth/check        | Verificar sessao                   | Nao   |
+| Method              | Route                  | Description                       | Auth  |
+| ------------------- | ---------------------- | --------------------------------- | ----- |
+| GET                 | /api/menu              | Public menu (dishes + categories) | No    |
+| GET                 | /api/categories        | List active categories            | No    |
+| GET                 | /api/orders            | List orders (with filters)        | Admin |
+| POST                | /api/orders            | Create order                      | No    |
+| GET                 | /api/orders/[id]       | Order details                     | No    |
+| PATCH               | /api/orders/[id]       | Update status/payment             | Admin |
+| DELETE              | /api/orders/[id]       | Cancel order                      | Admin |
+| GET                 | /api/stock             | Stock dashboard                   | Admin |
+| PATCH               | /api/stock             | Manual restock                    | Admin |
+| GET                 | /api/stock/[dishId]    | Stock and logs for a product      | Admin |
+| GET                 | /api/schedule          | Schedule of all products          | No    |
+| PATCH               | /api/schedule          | Update schedule for a product     | Admin |
+| PUT                 | /api/schedule          | Batch schedule update             | Admin |
+| POST                | /api/checkout/whatsapp | Create order and WhatsApp link    | No    |
+| GET/POST/PUT/DELETE | /api/dishes            | Product CRUD                      | Admin |
+| PATCH               | /api/dishes/reorder    | Reorder products (drag-and-drop)  | Admin |
+| POST                | /api/upload            | Cloudinary image upload           | Admin |
+| POST                | /api/auth/login        | Admin login                       | No    |
+| POST                | /api/auth/logout       | Admin logout                      | No    |
+| GET                 | /api/auth/check        | Verify session                    | No    |
 
 ---
 
-## Paleta de Cores
+## Color Palette
 
-| Cor      | Hex     | Utilizacao                |
-| -------- | ------- | ------------------------- |
-| Roxo     | #6B3A7D | Cor principal da marca    |
-| Vermelho | #8B3A3A | Categoria Salgados        |
-| Castanho | #6B4226 | Categoria Doces           |
-| Verde    | #4A7C59 | Categoria Fitness         |
-| Azul     | #4A6FA5 | Categoria Acompanhamentos |
-| Creme    | #F5F0EB | Background                |
+| Color  | Hex     | Usage               |
+| ------ | ------- | ------------------- |
+| Purple | #6B3A7D | Primary brand color |
+| Red    | #8B3A3A | Savoury category    |
+| Brown  | #6B4226 | Sweets category     |
+| Green  | #4A7C59 | Fitness category    |
+| Blue   | #4A6FA5 | Sides category      |
+| Cream  | #F5F0EB | Background          |
 
 ---
 
-## Deploy
+## Deployment
 
-### Vercel (Producao)
+### Vercel (Production)
 
-O projeto esta deployado na Vercel com dominio customizado caru.pt configurado via Hostinger DNS.
+The project is deployed on Vercel with a custom domain (caru.pt) configured via Hostinger DNS.
 
-Variaveis de ambiente necessarias no Vercel Dashboard:
+Environment variables required in the Vercel Dashboard:
 
 - MONGODB_URI
 - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
@@ -349,7 +369,7 @@ Variaveis de ambiente necessarias no Vercel Dashboard:
 - NEXT_PUBLIC_WHATSAPP_NUMBER
 - NEXT_PUBLIC_MBWAY_NUMBER
 
-### Build manual
+### Manual Build
 
 ```bash
 npm run build
@@ -358,23 +378,37 @@ npm start
 
 ---
 
-## Fluxo de Encomenda
+## Order Flow
 
-1. Cliente abre o menu em caru.pt
-2. Navega por categorias, pesquisa ou filtra produtos
-3. Ve badge de disponibilidade em cada produto (hoje, proximos dias, esgotado)
-4. Adiciona produto ao carrinho (sidebar abre automaticamente)
-5. No carrinho: escolhe "Hoje" ou outra data, horario, metodo de pagamento
-6. Clica "Encomendar via WhatsApp"
-7. Preenche nome e telefone no formulario
-8. Sistema cria encomenda no MongoDB, reserva stock, gera mensagem formatada
-9. WhatsApp abre com mensagem pre-formatada para o numero da Carol
-10. Carol recebe e gere no admin: confirma, prepara, entrega, marca pagamento
+1. Customer opens the menu at caru.pt
+2. Navigates through categories, searches, or applies filters (portion type + dietary restrictions)
+3. Sees an availability badge on each product (today, upcoming days, sold out)
+4. Adds a product to the cart (drawer opens automatically)
+5. Reads the notice about delivery area and restrictions
+6. Selects "Today" or another date on the calendar, a time slot, and a payment method
+7. Clicks "Order via WhatsApp"
+8. Fills in name and phone number in the checkout form
+9. The system creates the order in MongoDB, reserves stock, and generates a formatted message
+10. WhatsApp opens with a pre-formatted message addressed to Carol
+11. Carol receives the order and manages it in the admin: confirms, prepares, delivers, marks as paid
 
 ---
 
-## Licenca
+## Admin Flow
 
-Projeto privado. Todos os direitos reservados.
+1. Admin accesses caru.pt/admin and logs in
+2. Dashboard shows statistics: total products, available, unavailable
+3. Navigates between Orders, Schedule, Stock, QR Codes, and Product Management
+4. In product management: drags products by the handle to reorder them in the public menu
+5. Creates or edits products with weekly schedule, stock control, portion type, and images
+6. Handles orders in real time via automatic polling
+7. Updates the weekly schedule in batch or individually
+8. Manages stock with inline restocking and full movement history
 
-Desenvolvido por Orlando Pedrazzoli - orlandopedrazzoli.com
+---
+
+## License
+
+Private project. All rights reserved.
+
+Developed by Orlando Pedrazzoli - orlandopedrazzoli.com
