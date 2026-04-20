@@ -38,14 +38,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = dishes.filter(
-        dish =>
-          dish.name.pt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          dish.name.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          dish.category.name.pt
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()),
-      );
+      const term = searchTerm.toLowerCase();
+      const filtered = dishes.filter(dish => {
+        const namePt = dish.name?.pt?.toLowerCase() || '';
+        const nameEn = dish.name?.en?.toLowerCase() || '';
+        const categoryPt = dish.category?.name?.pt?.toLowerCase() || '';
+        return (
+          namePt.includes(term) ||
+          nameEn.includes(term) ||
+          categoryPt.includes(term)
+        );
+      });
       setFilteredDishes(filtered);
     } else {
       setFilteredDishes(dishes);

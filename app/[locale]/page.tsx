@@ -279,7 +279,7 @@ export default function MenuPage() {
                 <Link href={locale === 'pt' ? '/en' : '/pt'}>
                   <Button variant='ghost' size='sm'>
                     <Globe className='w-4 h-4 mr-2' />
-                    {locale === 'pt' ? 'EN' : 'PT'}
+                    {locale === 'pt' ? 'PT' : 'EN'}
                   </Button>
                 </Link>
                 <Button

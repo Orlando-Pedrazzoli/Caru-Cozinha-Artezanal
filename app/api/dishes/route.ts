@@ -4,17 +4,32 @@ import Dish from '@/models/Dish';
 import Category from '@/models/Category';
 import { isAdmin } from '@/lib/utils/auth';
 
+// Força registro do Category no mongoose antes de usar populate
+// Sem isso, em serverless o populate pode falhar silenciosamente
+void Category;
+
 export async function GET() {
   try {
     await dbConnect();
+    // Garante que Category está registrado (previne MissingSchemaError em cold starts)
+    if (!Category) throw new Error('Category model not loaded');
+
     const dishes = await Dish.find()
       .populate('category')
-      .sort({ displayOrder: 1 });
+      .sort({ displayOrder: 1 })
+      .lean();
+
     return NextResponse.json({ dishes, success: true });
   } catch (error) {
     console.error('Error fetching dishes:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch dishes', success: false },
+      {
+        error: 'Failed to fetch dishes',
+        success: false,
+        details: errorMessage,
+      },
       { status: 500 },
     );
   }
@@ -30,12 +45,10 @@ export async function POST(request: Request) {
     await dbConnect();
     const body = await request.json();
 
-    // Remover compareAtPrice se for 0 ou undefined
     if (!body.compareAtPrice) {
       delete body.compareAtPrice;
     }
 
-    // Garantir calories como number ou null
     if (body.calories === '' || body.calories === undefined) {
       body.calories = null;
     }
@@ -64,12 +77,10 @@ export async function PUT(request: Request) {
     await dbConnect();
     const { _id, ...data } = await request.json();
 
-    // Remover compareAtPrice se for 0 ou undefined
     if (!data.compareAtPrice) {
       delete data.compareAtPrice;
     }
 
-    // Garantir calories como number ou null
     if (data.calories === '' || data.calories === undefined) {
       data.calories = null;
     }
